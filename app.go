@@ -2,17 +2,66 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"time"
+
+	bolt "go.etcd.io/bbolt"
 )
 
-// App struct
-type App struct {
-	ctx context.Context
+const (
+	TEMP_DIR_PATH = "/tmp/hurlui"
+)
+
+type HurlResult struct {
+	OutputString string     `json:"outputString"`
+	Report       HurlReport `json:"report,omitempty"`
 }
 
-// NewApp creates a new App application struct
+type FileInfo struct {
+	Name     string `json:"name"`
+	Path     string `json:"path"`
+	IsDir    bool   `json:"isDir"`
+	Size     int64  `json:"size"`
+	Modified string `json:"modified"`
+}
+
+type FileExplorerState struct {
+	CurrentDir   FileInfo `json:"currentDir"`
+	SelectedFile FileInfo `json:"selectedFile"`
+}
+
+type ReturnValue struct {
+	FileExplorer FileExplorerState `json:"fileExplorer"`
+	Files        []FileInfo        `json:"files"`
+	Error        string            `json:"error,omitempty"`
+	HurlReport   HurlReport        `json:"hurlReport,omitempty"`
+}
+
+type App struct {
+	ctx           context.Context
+	explorerState FileExplorerState
+	cacheDB       *bolt.DB
+}
+
 func NewApp() *App {
-	return &App{}
+	homeDir, _ := os.UserHomeDir()
+	app := &App{
+		explorerState: FileExplorerState{
+			CurrentDir:   FileInfo{Name: "Home", Path: homeDir, IsDir: true},
+			SelectedFile: FileInfo{},
+		},
+	}
+
+	if err := app.initCache(); err != nil {
+		fmt.Printf("Failed to initialize cache: %v\n", err)
+	}
+
+	return app
 }
 
 // startup is called when the app starts. The context is saved
@@ -21,7 +70,274 @@ func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 }
 
-// Greet returns a greeting for the given name
-func (a *App) Greet(name string) string {
-	return fmt.Sprintf("Hello %s, It's show time!", name)
+func (a *App) shutdown(ctx context.Context) {
+	if err := a.CloseCache(); err != nil {
+		fmt.Printf("Failed to close cache: %v\n", err)
+	}
 }
+
+func (a *App) initCache() error {
+	cacheDir := filepath.Join(os.TempDir(), "hurlui")
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+		return fmt.Errorf("failed to create cache directory: %w", err)
+	}
+
+	dbPath := filepath.Join(cacheDir, "cache.db")
+	db, err := bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		return fmt.Errorf("failed to open cache database: %w", err)
+	}
+
+	a.cacheDB = db
+
+	return db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte("hurl_cache"))
+		if err != nil {
+			return fmt.Errorf("failed to create hurl_cache bucket: %w", err)
+		}
+		return nil
+	})
+}
+
+func createFileInfo(path string) (FileInfo, error) {
+
+	info, err := os.Stat(path)
+	if err != nil {
+		return FileInfo{}, err
+	}
+
+	return FileInfo{
+		Name:     filepath.Base(path),
+		Path:     path,
+		IsDir:    info.IsDir(),
+		Size:     info.Size(),
+		Modified: info.ModTime().Format("2006-01-02 15:04:05"),
+	}, nil
+}
+
+func (a *App) GetCurrentDirectory() FileInfo {
+	return a.explorerState.CurrentDir
+}
+
+func (a *App) GetFiles() ReturnValue {
+	entries, err := os.ReadDir(a.explorerState.CurrentDir.Path)
+	if err != nil {
+		return ReturnValue{Error: err.Error()}
+	}
+
+	var files []FileInfo
+	for _, entry := range entries {
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+
+		fileInfo := FileInfo{
+			Name:     entry.Name(),
+			Path:     filepath.Join(a.explorerState.CurrentDir.Path, entry.Name()),
+			IsDir:    entry.IsDir(),
+			Size:     info.Size(),
+			Modified: info.ModTime().Format("2006-01-02 15:04:05"),
+		}
+		files = append(files, fileInfo)
+	}
+
+	return ReturnValue{Files: files, FileExplorer: a.explorerState}
+}
+
+func (a *App) ChangeDirectory(path string) ReturnValue {
+	fileInfo, err := createFileInfo(path)
+	if err != nil {
+		return ReturnValue{Error: err.Error()}
+	}
+
+	if !fileInfo.IsDir {
+		fmt.Println("Failed to change directory:", path)
+		return ReturnValue{Error: fmt.Sprintf("path is not a directory: %s", path)}
+	}
+
+	a.explorerState.CurrentDir = fileInfo
+	return ReturnValue{FileExplorer: a.explorerState}
+}
+
+func (a *App) NavigateUp() ReturnValue {
+	parent := filepath.Dir(a.explorerState.CurrentDir.Path)
+	if parent == a.explorerState.CurrentDir.Path {
+		return ReturnValue{Error: "already at root directory"}
+	}
+	return a.ChangeDirectory(parent)
+}
+
+func (a *App) SelectFile(filePath string) ReturnValue {
+	fileInfo, err := createFileInfo(filePath)
+	if err != nil {
+		return ReturnValue{Error: fmt.Sprintf("file does not exist: %s", filePath)}
+	}
+
+	a.explorerState.SelectedFile = fileInfo
+	return ReturnValue{
+		FileExplorer: a.explorerState,
+	}
+}
+
+func (a *App) GetSelectedFile() FileInfo {
+	return a.explorerState.SelectedFile
+}
+
+func (a *App) ClearSelection() {
+	a.explorerState.SelectedFile = FileInfo{}
+}
+
+func (a *App) GetExplorerState() ReturnValue {
+	return ReturnValue{
+		FileExplorer: a.explorerState,
+	}
+}
+
+func (a *App) GetFileContent(filePath string) (string, error) {
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	content, err := io.ReadAll(file)
+	if err != nil {
+		return "", fmt.Errorf("failed to read file: %w", err)
+	}
+
+	return string(content), nil
+}
+
+func (a *App) selectedFileOutputPath() string {
+	return filepath.Dir((filepath.Join(TEMP_DIR_PATH, a.explorerState.SelectedFile.Path)))
+}
+
+func (a *App) selectedFileReportPath() string {
+	return filepath.Join(a.selectedFileOutputPath(), "report.json")
+
+}
+
+func (a *App) selectedFileStorePath() string {
+	return filepath.Join(a.selectedFileOutputPath(), "store")
+}
+
+func (a *App) ExecuteHurl(filePath string) ReturnValue {
+
+	fmt.Println("Executing Hurl for file:", a.explorerState.SelectedFile.Path)
+
+	// Create dir if not exists
+	if err := os.MkdirAll(TEMP_DIR_PATH, 0755); err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to create temp dir: %w", err)}
+	}
+
+	if _, err := os.Stat(a.explorerState.SelectedFile.Path); err != nil {
+		return ReturnValue{Error: fmt.Sprintf("file does not exist: %w", err)}
+	}
+
+	outputDir := a.selectedFileOutputPath()
+	reportPath := a.selectedFileReportPath()
+	outputBodyDir := a.selectedFileStorePath()
+	// Delete the content inside the dir
+	os.RemoveAll(outputDir)
+	os.RemoveAll(outputBodyDir)
+	os.Remove(reportPath)
+	os.MkdirAll(outputDir, 0755)
+
+	command := []string{"hurl", "--report-json", outputDir, a.explorerState.SelectedFile.Path}
+	cmd := exec.Command(command[0], command[1:]...)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to execute hurl: %w", err)}
+	}
+
+	// Read and parse JSON report from outputDir
+	var report HurlReport
+	if reportData, readErr := os.ReadFile(reportPath); readErr == nil {
+		if parseErr := json.Unmarshal(reportData, &report); parseErr != nil {
+			fmt.Printf("Failed to parse JSON report: %v\n", parseErr)
+		}
+	} else {
+		fmt.Printf("Failed to read JSON report: %v\n", readErr)
+	}
+
+	marshalled, err := json.Marshal(report)
+	fmt.Println(string(marshalled))
+
+	a.insertResponseData(&report, outputBodyDir)
+
+	return ReturnValue{HurlReport: report}
+}
+
+func (a *App) insertResponseData(h *HurlReport, filePath string) error {
+
+	outputDir := a.selectedFileOutputPath()
+
+	for i := range *h {
+		session := &(*h)[i]
+		for j := range session.Entries {
+			entry := &session.Entries[j]
+			for k := range entry.Calls {
+				call := &entry.Calls[k]
+
+				// Check if response body is a file reference
+				if call.Response.BodyPath != "" {
+					bodyFilePath := filepath.Join(outputDir, call.Response.BodyPath)
+
+					// Read the response body file
+					if bodyContent, err := os.ReadFile(bodyFilePath); err == nil {
+						// Replace file path with actual content
+						call.Response.Body = string(bodyContent)
+					} else {
+						fmt.Printf("Failed to read response body file %s: %v\n", bodyFilePath, err)
+						// Keep the original file path if reading fails
+					}
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *App) GetHurlResult(filePath string) ReturnValue {
+
+	reportPath := a.selectedFileReportPath()
+	outputPath := a.selectedFileOutputPath()
+
+	var report HurlReport
+	if reportData, readErr := os.ReadFile(reportPath); readErr == nil {
+		if parseErr := json.Unmarshal(reportData, &report); parseErr != nil {
+			fmt.Printf("Failed to parse JSON report: %v\n", parseErr)
+		} else {
+			// Insert response body data from files
+			if err := a.insertResponseData(&report, outputPath); err != nil {
+				fmt.Printf("Failed to insert response data: %v\n", err)
+			}
+		}
+	} else {
+		fmt.Printf("Failed to read JSON report: %v\n", readErr)
+	}
+	return ReturnValue{HurlReport: report}
+}
+
+// GetFileContentAndExecuteHurl reads a hurl file content and executes it
+// func (a *App) GetFileContentAndExecuteHurl(filePath string) (map[string]string, error) {
+// 	content, err := a.GetFileContent(filePath)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to read file: %w", err)
+// 	}
+
+// 	output, err := a.ExecuteHurl(filePath)
+// 	result := map[string]string{
+// 		"content": content,
+// 		"output":  output,
+// 	}
+
+// 	if err != nil {
+// 		result["error"] = err.Error()
+// 	}
+
+// 	return result, nil
+// }

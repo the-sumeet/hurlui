@@ -1,8 +1,9 @@
-import './style.css'
+import './app.css'
 import App from './App.svelte'
+import { mount } from 'svelte';
 
-const app = new App({
-  target: document.getElementById('app')
-})
+// Import bootstrap icons
+const app = mount(App, { target: document.getElementById("app") });
 
 export default app
+
