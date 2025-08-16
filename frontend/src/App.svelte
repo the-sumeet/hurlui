@@ -8,9 +8,6 @@
   import { Button } from "$lib/components/ui/button/index.js";
   import * as Resizable from "$lib/Components/ui/resizable/index.js";
   import Editor from "./Editor.svelte";
-  import Output from "./Output.svelte";
-  let resultText: string = "Please enter your name below 👇";
-  let name: string;
   import { GetFiles, GetHurlResult } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
   import { onMount } from "svelte";
@@ -21,7 +18,6 @@
     ExecuteHurl,
     SelectFile,
   } from "../wailsjs/go/main/App.js";
-  import { appState } from "./state.svelte";
   import HurlReport from "./HurlReport.svelte";
 
   let explorerState: main.FileExplorerState | null = $state(null);
@@ -91,13 +87,28 @@
 
   <!-- Main content -->
   <Sidebar.Inset class="h-full">
+    <!-- Header -->
     <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
       <Sidebar.Trigger class="-ml-1" />
       <Separator
         orientation="vertical"
         class="mr-2 data-[orientation=vertical]:h-4"
       />
-      <Breadcrumb.Root>
+
+      <!-- Toolbar -->
+      <div class="p-1 flex w-full justify-end">
+        <Button onclick={onExecuteHurl}
+          >{#if runningHurl}
+            <Loader2Icon class="animate-spin" />
+            Running
+          {:else}
+            <Play /> Run
+          {/if}</Button
+        >
+      </div>
+
+      <!-- Breadcrumbs -->
+      <!-- <Breadcrumb.Root>
         <Breadcrumb.List>
           <Breadcrumb.Item class="hidden md:block">
             <Breadcrumb.Link href="#">lib</Breadcrumb.Link>
@@ -111,22 +122,10 @@
             <Breadcrumb.Page>button.svelte</Breadcrumb.Page>
           </Breadcrumb.Item>
         </Breadcrumb.List>
-      </Breadcrumb.Root>
+      </Breadcrumb.Root> -->
     </header>
 
     <div class="flex flex-1 flex-col h-full w-full">
-      <!-- Topbar -->
-      <div class="p-1 flex">
-        <Button onclick={onExecuteHurl}
-          >{#if runningHurl}
-            <Loader2Icon class="animate-spin" />
-            Running
-          {:else}
-            <Play /> Run
-          {/if}</Button
-        >
-      </div>
-
       <Resizable.PaneGroup
         direction="horizontal"
         class="min-h-[200px] h-full border overflow-y-hidden flex-1"
