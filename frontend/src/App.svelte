@@ -22,42 +22,59 @@
     ExecuteHurl,
     SelectFile,
     CreateNewFile,
+    CreateFolder,
   } from "../wailsjs/go/main/App.js";
   import HurlReport from "./HurlReport.svelte";
   import { appState, type Dialog as AppDialog } from "./state.svelte";
 
   let dialogOpened = $derived(appState.dialog != null);
-  $inspect(dialogOpened);
-  $inspect(appState);
 
   let explorerState: main.FileExplorerState | null = $state(null);
   let files: main.FileInfo[] | null = $state(null);
   let runningHurl: boolean = $state(false);
   let hurlReport: main.HurlSession[] | null = $state(null);
-  let newFileName: string = $state("untitled.hurl");
+  let dialogInput: string = $state("");
   let inputFileContent: string = $state("");
 
   function showSaveFileDialog() {
-    console.log("Showing save file dialog");
+    dialogInput = "untitled.hurl";
     appState.dialog = {
       title: "Save File",
       description: `Create a new Hurl file in ${explorerState?.currentDir?.path || ""}`,
       inputLabel: "File Name",
-      inputValue: newFileName,
       onclick: () => {
+        if (!dialogInput.endsWith(".hurl")) {
+          dialogInput += ".hurl";
+        }
+        // Handle file save logic here
+        console.log("Creating new file:", dialogInput);
+        CreateNewFile(dialogInput, "").then((result) => {
+          if (result.error) {
+            console.error("Failed to create new file:", result.error);
+          } else {
+            fetchFiles();
+          }
+        });
         appState.dialog = null;
-        // if (!newFileName.endsWith(".hurl")) {
-        //   newFileName += ".hurl";
-        // }
-        // // Handle file save logic here
-        // CreateNewFile(newFileName, "").then((result) => {
-        //   if (result.error) {
-        //     console.error("Failed to create new file:", result.error);
-        //   } else {
-        //   }
-        // });
-        // appState.dialog = null;
-        // fetchFiles();
+      },
+    };
+  }
+
+  function showNewFolderDialog() {
+    dialogInput = "NewFolder";
+    appState.dialog = {
+      title: "Create New Folder",
+      description: `Create a new folder in ${explorerState?.currentDir?.path || ""}`,
+      inputLabel: "Folder Name",
+      onclick: () => {
+        CreateFolder(dialogInput).then((result) => {
+          if (result.error) {
+            console.error("Failed to create new folder:", result.error);
+          } else {
+            fetchFiles();
+          }
+        });
+        appState.dialog = null;
       },
     };
   }
@@ -125,7 +142,7 @@
       {#if dialog.inputLabel}
         <div class="grid grid-cols-4 items-center gap-4">
           <Label for="name" class="text-right">{dialog.inputLabel}</Label>
-          <Input id="name" bind:value={dialog.inputValue} class="col-span-3" />
+          <Input id="name" bind:value={dialogInput} class="col-span-3" />
         </div>
       {/if}
       <!-- <div class="grid grid-cols-4 items-center gap-4">
@@ -135,9 +152,7 @@
     </div>
     {#if dialog.onclick}
       <Dialog.Footer>
-        <Button type="button" onclick={() => (appState.dialog = null)}
-          >Save changes</Button
-        >
+        <Button type="button" onclick={dialog.onclick}>Save changes</Button>
       </Dialog.Footer>
     {/if}
   </Dialog.Content>
@@ -200,7 +215,9 @@
         >
 
         <Button variant="outline"><Save /></Button>
-        <Button variant="outline"><FolderPlus /></Button>
+        <Button variant="outline" onclick={showNewFolderDialog}
+          ><FolderPlus /></Button
+        >
       </div>
 
       <!-- Breadcrumbs -->

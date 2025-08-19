@@ -10,6 +10,8 @@ export function ClearSelection():Promise<void>;
 
 export function CloseCache():Promise<void>;
 
+export function CreateFolder(arg1:string):Promise<main.ReturnValue>;
+
 export function CreateNewFile(arg1:string,arg2:string):Promise<main.ReturnValue>;
 
 export function DeleteCache(arg1:string):Promise<void>;

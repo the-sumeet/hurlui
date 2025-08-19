@@ -323,6 +323,12 @@ func (a *App) GetHurlResult(filePath string) ReturnValue {
 func (a *App) CreateNewFile(fileName string, fileContent string) ReturnValue {
 	// Create a new file in the current directory
 	filePath := filepath.Join(a.explorerState.CurrentDir.Path, fileName)
+
+	// Check if file already exists
+	if _, err := os.Stat(filePath); err == nil {
+		return ReturnValue{Error: fmt.Sprintf("file already exists: %s", fileName)}
+	}
+
 	if err := os.WriteFile(filePath, []byte(fileContent), 0644); err != nil {
 		return ReturnValue{Error: fmt.Sprintf("failed to create new file: %w", err)}
 	}
@@ -332,7 +338,32 @@ func (a *App) CreateNewFile(fileName string, fileContent string) ReturnValue {
 		return ReturnValue{Error: fmt.Sprintf("failed to create file info: %w", err)}
 	}
 
+	fmt.Println("New file created:", newFile.Name)
+
 	a.explorerState.SelectedFile = newFile
+
+	return ReturnValue{}
+}
+
+func (a *App) CreateFolder(folderName string) ReturnValue {
+	// Create a new folder in the current directory
+	folderPath := filepath.Join(a.explorerState.CurrentDir.Path, folderName)
+
+	// Check if folder already exists
+	if _, err := os.Stat(folderPath); err == nil {
+		return ReturnValue{Error: fmt.Sprintf("folder already exists: %s", folderName)}
+	}
+
+	if err := os.Mkdir(folderPath, 0755); err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to create new folder: %w", err)}
+	}
+
+	newFolder, err := createFileInfo(folderPath)
+	if err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to create folder info: %w", err)}
+	}
+
+	a.explorerState.CurrentDir = newFolder
 
 	return ReturnValue{}
 }

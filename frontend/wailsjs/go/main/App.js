@@ -18,6 +18,10 @@ export function CloseCache() {
   return window['go']['main']['App']['CloseCache']();
 }
 
+export function CreateFolder(arg1) {
+  return window['go']['main']['App']['CreateFolder'](arg1);
+}
+
 export function CreateNewFile(arg1, arg2) {
   return window['go']['main']['App']['CreateNewFile'](arg1, arg2);
 }
