@@ -1,73 +1,23 @@
 <script lang="ts">
     import ace from "ace-builds";
-    import "ace-builds/src-noconflict/theme-github"; // Example theme
+    import "ace-builds/src-noconflict/theme-github_dark"; // Example theme
     import "ace-builds/src-noconflict/mode-markdown"; // Markdown syntax support
     import { onMount, onDestroy } from "svelte";
     import { getContext } from "svelte";
     import { appState } from "./state.svelte";
 
-    let theme = "github";
+    let { content = $bindable() } = $props();
+
+    let theme = "github_dark";
     let mode = "markdown";
     let fontSize = 14;
 
     let editor: ace.Editor;
     let editorElement: HTMLElement;
 
-    function bold() {
-        if (editor) {
-            const selectedText = editor.getSelectedText();
-            const selection = editor.getSelectionRange();
-
-            if (selectedText) {
-                editor.session.replace(selection, `**${selectedText}**`);
-            }
-        }
-    }
-
-    function italic() {
-        if (editor) {
-            const selectedText = editor.getSelectedText();
-            const selection = editor.getSelectionRange();
-
-            if (selectedText) {
-                editor.session.replace(selection, `*${selectedText}*`);
-            }
-        }
-    }
-
-    function underline() {
-        if (editor) {
-            const selectedText = editor.getSelectedText();
-            const selection = editor.getSelectionRange();
-
-            if (selectedText) {
-                editor.session.replace(selection, `<ins>${selectedText}<ins>`);
-            }
-        }
-    }
-
     $effect(() => {
-        if (appState.bold && editor) {
-            bold();
-            appState.bold = false;
-        } else if (appState.italic && editor) {
-            italic();
-            appState.italic = false;
-        } else if (appState.underline && editor) {
-            underline();
-            appState.underline = false;
-        }
-    });
-
-    $effect(() => {
-        if (appState.selectedNote != null) {
-            if (editor) {
-                editor.setValue(appState.selectedNote.Content, -1);
-            }
-        } else {
-            if (editor) {
-                editor.setValue("", -1);
-            }
+        if (editor) {
+            editor.setValue(content, -1);
         }
     });
 
@@ -82,7 +32,7 @@
 
         // Sync with parent component
         editor.session.on("change", () => {
-            appState.mdContent = editor.getValue();
+            content = editor.getValue();
         });
 
         // Add copy/paste keyboard shortcuts
@@ -129,8 +79,8 @@
     });
 
     $effect(() => {
-        if (editor && appState.mdContent !== editor.getValue()) {
-            editor.setValue(appState.mdContent, -1);
+        if (editor && content !== editor.getValue()) {
+            editor.setValue(content, -1);
         }
     });
 </script>

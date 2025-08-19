@@ -12,7 +12,6 @@
 		onDirSelect: (dir: main.FileInfo) => void;
 		onFileSelect: (file: main.FileInfo) => void;
 		onNavigateUp: () => void;
-		onExecuteHurl: (file: main.FileInfo) => void;
 		[key: string]: any;
 	}
 
@@ -23,7 +22,6 @@
 		onDirSelect,
 		onFileSelect,
 		onNavigateUp,
-		onExecuteHurl,
 		...restProps
 	}: Props = $props();
 </script>
@@ -62,7 +60,6 @@
 			{onDirSelect}
 			{onFileSelect}
 			{onNavigateUp}
-			{onExecuteHurl}
 		/>
 		<!-- <NavSecondary items={data.navSecondary} class="mt-auto" /> -->
 	</Sidebar.Content>

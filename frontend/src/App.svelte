@@ -1,29 +1,66 @@
 <script lang="ts">
   import AppSidebar from "$lib/components/app-sidebar.svelte";
-  import * as Breadcrumb from "$lib/components/ui/breadcrumb/index.js";
-  import { Separator } from "$lib/components/ui/separator/index.js";
+  import { Separator } from "$lib/Components/ui/separator/index.js";
   import { Play } from "lucide-svelte";
-  import * as Sidebar from "$lib/components/ui/sidebar/index.js";
+  import * as Sidebar from "$lib/Components/ui/sidebar/index.js";
   import "./app.css";
-  import { Button } from "$lib/components/ui/button/index.js";
   import * as Resizable from "$lib/Components/ui/resizable/index.js";
   import Editor from "./Editor.svelte";
   import { GetFiles, GetHurlResult } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
   import { onMount } from "svelte";
   import Loader2Icon from "@lucide/svelte/icons/loader-2";
+  import { FolderPlus } from "lucide-svelte";
+  import { Save } from "lucide-svelte";
+  import { Button, buttonVariants } from "$lib/components/ui/button/index.js";
+  import * as Dialog from "$lib/Components/ui/dialog/index.js";
+  import { Input } from "$lib/Components/ui/input/index.js";
+  import { Label } from "$lib/Components/ui/label/index.js";
   import {
     ChangeDirectory,
     NavigateUp,
     ExecuteHurl,
     SelectFile,
+    CreateNewFile,
   } from "../wailsjs/go/main/App.js";
   import HurlReport from "./HurlReport.svelte";
+  import { appState, type Dialog as AppDialog } from "./state.svelte";
+
+  let dialogOpened = $derived(appState.dialog != null);
+  $inspect(dialogOpened);
+  $inspect(appState);
 
   let explorerState: main.FileExplorerState | null = $state(null);
   let files: main.FileInfo[] | null = $state(null);
   let runningHurl: boolean = $state(false);
   let hurlReport: main.HurlSession[] | null = $state(null);
+  let newFileName: string = $state("untitled.hurl");
+  let inputFileContent: string = $state("");
+
+  function showSaveFileDialog() {
+    console.log("Showing save file dialog");
+    appState.dialog = {
+      title: "Save File",
+      description: `Create a new Hurl file in ${explorerState?.currentDir?.path || ""}`,
+      inputLabel: "File Name",
+      inputValue: newFileName,
+      onclick: () => {
+        appState.dialog = null;
+        // if (!newFileName.endsWith(".hurl")) {
+        //   newFileName += ".hurl";
+        // }
+        // // Handle file save logic here
+        // CreateNewFile(newFileName, "").then((result) => {
+        //   if (result.error) {
+        //     console.error("Failed to create new file:", result.error);
+        //   } else {
+        //   }
+        // });
+        // appState.dialog = null;
+        // fetchFiles();
+      },
+    };
+  }
 
   function onDirSelect(dir: main.FileInfo) {
     ChangeDirectory(dir.path).then(() => {
@@ -74,6 +111,38 @@
   });
 </script>
 
+{#snippet dialog(dialog: AppDialog)}
+  <Dialog.Content class="sm:max-w-[425px]">
+    <Dialog.Header>
+      <Dialog.Title>{dialog.title}</Dialog.Title>
+      {#if dialog.description}
+        <Dialog.Description>
+          {dialog.description}
+        </Dialog.Description>
+      {/if}
+    </Dialog.Header>
+    <div class="grid gap-4 py-4">
+      {#if dialog.inputLabel}
+        <div class="grid grid-cols-4 items-center gap-4">
+          <Label for="name" class="text-right">{dialog.inputLabel}</Label>
+          <Input id="name" bind:value={dialog.inputValue} class="col-span-3" />
+        </div>
+      {/if}
+      <!-- <div class="grid grid-cols-4 items-center gap-4">
+        <Label for="username" class="text-right">Username</Label>
+        <Input id="username" value="@peduarte" class="col-span-3" />
+      </div> -->
+    </div>
+    {#if dialog.onclick}
+      <Dialog.Footer>
+        <Button type="button" onclick={() => (appState.dialog = null)}
+          >Save changes</Button
+        >
+      </Dialog.Footer>
+    {/if}
+  </Dialog.Content>
+{/snippet}
+
 <Sidebar.Provider class="h-screen">
   <!-- Sidebar -->
   <AppSidebar
@@ -82,11 +151,21 @@
     {onDirSelect}
     {onFileSelect}
     {onNavigateUp}
-    {onExecuteHurl}
+    class="h-full"
   />
 
   <!-- Main content -->
   <Sidebar.Inset class="h-full">
+    <!-- Dialog -->
+    <Dialog.Root open={dialogOpened}>
+      <!-- <Dialog.Trigger class={buttonVariants({ variant: "outline" })}
+        >Edit Profile</Dialog.Trigger
+      > -->
+      {#if appState.dialog}
+        {@render dialog(appState.dialog)}
+      {/if}
+    </Dialog.Root>
+
     <!-- Header -->
     <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
       <Sidebar.Trigger class="-ml-1" />
@@ -96,15 +175,32 @@
       />
 
       <!-- Toolbar -->
-      <div class="p-1 flex w-full justify-end">
-        <Button onclick={onExecuteHurl}
+      <div class="p-1 flex w-full justify-end gap-1">
+        <Button
+          onclick={() => {
+            if (runningHurl) return;
+
+            if (!explorerState?.selectedFile.path) {
+              showSaveFileDialog();
+            } else {
+              onExecuteHurl();
+            }
+          }}
           >{#if runningHurl}
             <Loader2Icon class="animate-spin" />
             Running
           {:else}
-            <Play /> Run
+            <Play />
+            {#if explorerState?.selectedFile.path}
+              Run
+            {:else}
+              Save & Run
+            {/if}
           {/if}</Button
         >
+
+        <Button variant="outline"><Save /></Button>
+        <Button variant="outline"><FolderPlus /></Button>
       </div>
 
       <!-- Breadcrumbs -->
@@ -132,7 +228,7 @@
       >
         <!-- Input -->
         <Resizable.Pane defaultSize={50} class="h-full">
-          <Editor />
+          <Editor bind:content={inputFileContent} />
         </Resizable.Pane>
 
         <!-- Output -->

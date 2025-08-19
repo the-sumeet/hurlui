@@ -14,14 +14,12 @@
 		onDirSelect,
 		onFileSelect,
 		onNavigateUp,
-		onExecuteHurl,
 	}: {
 		explorerState?: main.FileExplorerState | null;
 		files?: main.FileInfo[] | null;
 		onDirSelect: (dir: main.FileInfo) => void;
 		onFileSelect: (file: main.FileInfo) => void;
 		onNavigateUp: () => void;
-		onExecuteHurl: (file: main.FileInfo) => void;
 	} = $props();
 
 	const sidebar = useSidebar();

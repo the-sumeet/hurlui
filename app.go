@@ -225,8 +225,6 @@ func (a *App) selectedFileStorePath() string {
 
 func (a *App) ExecuteHurl(filePath string) ReturnValue {
 
-	fmt.Println("Executing Hurl for file:", a.explorerState.SelectedFile.Path)
-
 	// Create dir if not exists
 	if err := os.MkdirAll(TEMP_DIR_PATH, 0755); err != nil {
 		return ReturnValue{Error: fmt.Sprintf("failed to create temp dir: %w", err)}
@@ -320,6 +318,23 @@ func (a *App) GetHurlResult(filePath string) ReturnValue {
 		fmt.Printf("Failed to read JSON report: %v\n", readErr)
 	}
 	return ReturnValue{HurlReport: report}
+}
+
+func (a *App) CreateNewFile(fileName string, fileContent string) ReturnValue {
+	// Create a new file in the current directory
+	filePath := filepath.Join(a.explorerState.CurrentDir.Path, fileName)
+	if err := os.WriteFile(filePath, []byte(fileContent), 0644); err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to create new file: %w", err)}
+	}
+
+	newFile, err := createFileInfo(filePath)
+	if err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to create file info: %w", err)}
+	}
+
+	a.explorerState.SelectedFile = newFile
+
+	return ReturnValue{}
 }
 
 // GetFileContentAndExecuteHurl reads a hurl file content and executes it
