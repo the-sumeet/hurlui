@@ -3,8 +3,6 @@
     import "ace-builds/src-noconflict/theme-github_dark"; // Example theme
     import "ace-builds/src-noconflict/mode-markdown"; // Markdown syntax support
     import { onMount, onDestroy } from "svelte";
-    import { getContext } from "svelte";
-    import { appState } from "./state.svelte";
 
     let { content = $bindable() } = $props();
 

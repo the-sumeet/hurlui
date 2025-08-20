@@ -41,9 +41,7 @@
         return result;
     }
 
-    let isOnlyOneResponse = $derived(
-        entries.length === 1 && entries[0].calls.length === 1,
-    );
+    let multipleResponse = $state(false);
 </script>
 
 {#snippet timingRow(key: string, value: string, tooltip: string | null)}
@@ -79,124 +77,110 @@
             </Select.Root>
         {/if}
 
-        <div class="flex-1 flex flex-col gap-1 overflow-y-auto h-full mt-1">
+        <!-- Response container -->
+        <div class="flex-1 flex flex-col gap-1 overflow-y-scroll h-full">
             {#each entries as trigger, i}
-                <div
-                    class="border-2 rounded-xl p-1 flex flex-col {trigger.calls
-                        .length > 1
-                        ? 'border-green-800'
-                        : ' mb-2 gap-1'} {isOnlyOneResponse ? 'h-full' : ''}"
-                >
-                    {#each trigger.calls as call, j}
-                        <div
-                            class="flex-1 flex flex-col {isOnlyOneResponse
-                                ? 'h-full'
-                                : 'border rounded-xl shadow-sm h-[500px]'} gap-1 p-1"
-                        >
-                            {#if trigger.calls.length > 1}
-                                <p class="text-sm">Call #{j + 1}</p>
-                            {/if}
+                {#each trigger.calls as call, j}
+                    <div class="flex flex-col only:h-full h-[512px]">
+                        {#if trigger.calls.length > 1}
+                            <p class="text-sm">Call #{j + 1}</p>
+                        {/if}
 
-                            <Card.Root class="h-full py-2 gap-2">
-                                <Card.Header class="px-2">
-                                    <!-- <Card.Title>{trigger}</Card.Title> -->
-                                    <Card.Description>
-                                        <div class="flex gap-1 items-start">
-                                            <Badge
-                                                variant="outline"
-                                                class="h-min"
-                                                >{call.request.method}</Badge
-                                            >
-                                            <div class="flex-1">
-                                                {call.request.url}
-                                            </div>
-                                        </div></Card.Description
-                                    >
-                                    <!-- <Card.Action>
+                        <Card.Root class="h-full py-1 gap-1">
+                            <Card.Header class="px-1">
+                                <!-- <Card.Title>{trigger}</Card.Title> -->
+                                <Card.Description>
+                                    <div class="flex gap-1 items-start">
+                                        <Badge variant="outline" class="h-min"
+                                            >{call.request.method}</Badge
+                                        >
+                                        <div class="flex-1">
+                                            {call.request.url}
+                                        </div>
+                                    </div></Card.Description
+                                >
+                                <!-- <Card.Action>
                                     <Button variant="link" size="sm"
                                         >Load Response</Button
                                     >
                                 </Card.Action> -->
-                                </Card.Header>
-                                <Card.Content class="h-full px-2">
-                                    <!-- Main tab -->
-                                    <Tabs.Root
-                                        value="response"
-                                        class="h-full w-full border rounded-xl shadow-sm p-1"
-                                    >
-                                        <Tabs.List>
-                                            <Tabs.Trigger value="response"
-                                                >Response</Tabs.Trigger
-                                            >
-                                            <Tabs.Trigger value="request"
-                                                >Request</Tabs.Trigger
-                                            >
-                                            <Tabs.Trigger value="timing"
-                                                >Timing</Tabs.Trigger
-                                            >
-                                        </Tabs.List>
-                                        <!-- Response Content -->
-                                        <Tabs.Content value="response">
-                                            <Tabs.Root
-                                                value="body"
-                                                class="h-full w-full border rounded-xl shadow-sm p-1"
-                                            >
-                                                <Tabs.List>
-                                                    <Tabs.Trigger value="body"
-                                                        >Body</Tabs.Trigger
-                                                    >
-                                                    <Tabs.Trigger
-                                                        value="password"
-                                                        >Response</Tabs.Trigger
-                                                    >
-                                                </Tabs.List>
-                                                <Tabs.Content value="body">
-                                                    <div
-                                                        class="h-full border rounded-xl"
-                                                    >
-                                                        <CodeBlock
-                                                            value={call.response
-                                                                .bodyContent}
-                                                        />
-                                                    </div>
-                                                </Tabs.Content>
-                                                <Tabs.Content value="password"
-                                                    >Change your password here.</Tabs.Content
-                                                >
-                                            </Tabs.Root>
-                                        </Tabs.Content>
-                                        <!-- Request Content -->
-                                        <Tabs.Content value="request"
-                                            ><Textarea
-                                                readonly
-                                                value={getEntryText(call)}
-                                                rows={6}
-                                            /></Tabs.Content
+                            </Card.Header>
+                            <Card.Content class="h-full px-1">
+                                <!-- Main tab -->
+                                <Tabs.Root
+                                    value="response"
+                                    class="h-full w-full border rounded-xl shadow-sm p-1"
+                                >
+                                    <Tabs.List>
+                                        <Tabs.Trigger value="response"
+                                            >Response</Tabs.Trigger
                                         >
-                                        <!-- Timing Content -->
-                                        <Tabs.Content value="timing">
-                                            <div class="flex flex-col">
-                                                {#each Object.entries(call.timings) as [key, value]}
-                                                    {@render timingRow(
-                                                        snakeToTitleCase(key) ||
-                                                            key,
-                                                        value,
-                                                        timingsDescription[
-                                                            key
-                                                        ] || null,
-                                                    )}
-                                                {/each}
-                                            </div>
-                                        </Tabs.Content>
-                                    </Tabs.Root>
-                                </Card.Content>
-                                <Card.Footer>
-                                    <p class="text-green-600">200 OK</p>
-                                </Card.Footer>
-                            </Card.Root>
-                        </div>
-                    {/each}
-                </div>
+                                        <Tabs.Trigger value="request"
+                                            >Request</Tabs.Trigger
+                                        >
+                                        <Tabs.Trigger value="timing"
+                                            >Timing</Tabs.Trigger
+                                        >
+                                    </Tabs.List>
+                                    <!-- Response Content -->
+                                    <Tabs.Content value="response">
+                                        <Tabs.Root
+                                            value="body"
+                                            class="h-full w-full border rounded-xl shadow-sm p-1"
+                                        >
+                                            <Tabs.List>
+                                                <Tabs.Trigger value="body"
+                                                    >Body</Tabs.Trigger
+                                                >
+                                                <Tabs.Trigger value="password"
+                                                    >Response</Tabs.Trigger
+                                                >
+                                            </Tabs.List>
+                                            <Tabs.Content value="body">
+                                                <div
+                                                    class="h-full border rounded-xl"
+                                                >
+                                                    <CodeBlock
+                                                        value={call.response
+                                                            .bodyContent}
+                                                    />
+                                                </div>
+                                            </Tabs.Content>
+                                            <Tabs.Content value="password"
+                                                >Change your password here.</Tabs.Content
+                                            >
+                                        </Tabs.Root>
+                                    </Tabs.Content>
+                                    <!-- Request Content -->
+                                    <Tabs.Content value="request"
+                                        ><Textarea
+                                            readonly
+                                            value={getEntryText(call)}
+                                            rows={6}
+                                        /></Tabs.Content
+                                    >
+                                    <!-- Timing Content -->
+                                    <Tabs.Content value="timing">
+                                        <div class="flex flex-col">
+                                            {#each Object.entries(call.timings) as [key, value]}
+                                                {@render timingRow(
+                                                    snakeToTitleCase(key) ||
+                                                        key,
+                                                    value,
+                                                    timingsDescription[key] ||
+                                                        null,
+                                                )}
+                                            {/each}
+                                        </div>
+                                    </Tabs.Content>
+                                </Tabs.Root>
+                            </Card.Content>
+                            <Card.Footer>
+                                <p class="text-green-600">200 OK</p>
+                            </Card.Footer>
+                        </Card.Root>
+                    </div>
+                {/each}
             {/each}
         </div>
     {:else}

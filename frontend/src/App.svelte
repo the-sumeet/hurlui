@@ -255,24 +255,22 @@
       </Breadcrumb.Root> -->
     </header>
 
-    <div class="flex flex-1 flex-col h-full w-full">
-      <Resizable.PaneGroup
-        direction="horizontal"
-        class="min-h-[200px] h-full border overflow-y-hidden flex-1"
-      >
-        <!-- Input -->
-        <Resizable.Pane defaultSize={50} class="h-full">
-          <Editor bind:content={inputFileContent} />
-        </Resizable.Pane>
+    <Resizable.PaneGroup
+      direction="horizontal"
+      class="min-h-[200px] h-full border overflow-y-hidden flex-1"
+    >
+      <!-- Input -->
+      <Resizable.Pane defaultSize={50} class="h-full">
+        <Editor bind:content={inputFileContent} />
+      </Resizable.Pane>
 
-        <!-- Output -->
-        {#if hurlReport && hurlReport.length > 0}
-          <Resizable.Handle withHandle />
-          <Resizable.Pane defaultSize={50} class="h-full overflow-y-hidden">
-            <HurlReport {hurlReport} />
-          </Resizable.Pane>
-        {/if}
-      </Resizable.PaneGroup>
-    </div>
+      <!-- Output -->
+      {#if hurlReport && hurlReport.length > 0}
+        <Resizable.Handle withHandle />
+        <Resizable.Pane defaultSize={50} class="h-full overflow-y-hidden">
+          <HurlReport {hurlReport} />
+        </Resizable.Pane>
+      {/if}
+    </Resizable.PaneGroup>
   </Sidebar.Inset>
 </Sidebar.Provider>
