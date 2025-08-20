@@ -8,39 +8,13 @@
     import { getContext } from "svelte";
     import { appState } from "./state.svelte";
 
-    let { value } = $props();
+    let { value, mode } = $props();
 
     let theme = "chaos";
-    let mode = "markdown";
     let fontSize = 14;
 
     let editor: ace.Editor;
     let editorElement: HTMLElement;
-
-    // $effect(() => {
-    //     if (appState.bold && editor) {
-    //         bold();
-    //         appState.bold = false;
-    //     } else if (appState.italic && editor) {
-    //         italic();
-    //         appState.italic = false;
-    //     } else if (appState.underline && editor) {
-    //         underline();
-    //         appState.underline = false;
-    //     }
-    // });
-
-    // $effect(() => {
-    //     if (appState.selectedNote != null) {
-    //         if (editor) {
-    //             editor.setValue(appState.selectedNote.Content, -1);
-    //         }
-    //     } else {
-    //         if (editor) {
-    //             editor.setValue("", -1);
-    //         }
-    //     }
-    // });
 
     // Initialize editor
     onMount(async () => {

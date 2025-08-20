@@ -149,6 +149,7 @@
                                 <div class="flex-1 h-full border rounded-xl">
                                     <CodeBlock
                                         value={call.response.bodyContent}
+                                        mode={responseType}
                                     />
                                 </div>
                             </div>
