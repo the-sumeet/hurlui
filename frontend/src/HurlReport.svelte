@@ -82,16 +82,16 @@
         <div class="flex-1 flex flex-col gap-1 overflow-y-auto h-full mt-1">
             {#each entries as trigger, i}
                 <div
-                    class="border-2 rounded-xl border-green-800 p-1 flex flex-col {trigger
-                        .calls.length > 1
-                        ? 'mb-2 gap-1'
-                        : ''}"
+                    class="border-2 rounded-xl p-1 flex flex-col {trigger.calls
+                        .length > 1
+                        ? 'border-green-800'
+                        : ' mb-2 gap-1'} {isOnlyOneResponse ? 'h-full' : ''}"
                 >
                     {#each trigger.calls as call, j}
                         <div
                             class="flex-1 flex flex-col {isOnlyOneResponse
                                 ? 'h-full'
-                                : 'border rounded-xl shadow-sm h-[512px]'} gap-1 p-1"
+                                : 'border rounded-xl shadow-sm h-[500px]'} gap-1 p-1"
                         >
                             {#if trigger.calls.length > 1}
                                 <p class="text-sm">Call #{j + 1}</p>

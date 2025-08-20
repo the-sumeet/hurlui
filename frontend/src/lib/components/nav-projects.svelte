@@ -22,6 +22,8 @@
 		onNavigateUp: () => void;
 	} = $props();
 
+	$inspect(files);
+
 	const sidebar = useSidebar();
 </script>
 

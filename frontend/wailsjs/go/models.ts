@@ -390,6 +390,7 @@ export namespace main {
 	
 	
 	export class ReturnValue {
+	    fileContent?: string;
 	    fileExplorer: FileExplorerState;
 	    files: FileInfo[];
 	    error?: string;
@@ -401,6 +402,7 @@ export namespace main {
 	
 	    constructor(source: any = {}) {
 	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.fileContent = source["fileContent"];
 	        this.fileExplorer = this.convertValues(source["fileExplorer"], FileExplorerState);
 	        this.files = this.convertValues(source["files"], FileInfo);
 	        this.error = source["error"];

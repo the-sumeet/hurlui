@@ -6,7 +6,11 @@
   import "./app.css";
   import * as Resizable from "$lib/Components/ui/resizable/index.js";
   import Editor from "./Editor.svelte";
-  import { GetFiles, GetHurlResult } from "../wailsjs/go/main/App.js";
+  import {
+    GetFileContent,
+    GetFiles,
+    GetHurlResult,
+  } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
   import { onMount } from "svelte";
   import Loader2Icon from "@lucide/svelte/icons/loader-2";
@@ -16,6 +20,7 @@
   import * as Dialog from "$lib/Components/ui/dialog/index.js";
   import { Input } from "$lib/Components/ui/input/index.js";
   import { Label } from "$lib/Components/ui/label/index.js";
+  import { FilePlus } from "lucide-svelte";
   import {
     ChangeDirectory,
     NavigateUp,
@@ -36,7 +41,11 @@
   let dialogInput: string = $state("");
   let inputFileContent: string = $state("");
 
-  function showSaveFileDialog() {
+  function showSaveFileDialog(fileContent: string = "") {
+    if (fileContent == "") {
+      fileContent = inputFileContent;
+    }
+
     dialogInput = "untitled.hurl";
     appState.dialog = {
       title: "Save File",
@@ -48,7 +57,7 @@
         }
         // Handle file save logic here
         console.log("Creating new file:", dialogInput);
-        CreateNewFile(dialogInput, "").then((result) => {
+        CreateNewFile(dialogInput, fileContent).then((result) => {
           if (result.error) {
             console.error("Failed to create new file:", result.error);
           } else {
@@ -86,8 +95,15 @@
   }
 
   function onFileSelect(file: main.FileInfo) {
-    SelectFile(file.path).then((result) => {
-      explorerState = result.fileExplorer;
+    SelectFile(file.path).then((select_file_result) => {
+      GetFileContent(file.path).then((result) => {
+        inputFileContent = result.fileContent || "";
+        explorerState = select_file_result.fileExplorer;
+
+        GetHurlResult(explorerState.selectedFile.path).then((result) => {
+          hurlReport = result.hurlReport || null;
+        });
+      });
     });
   }
 
@@ -158,7 +174,7 @@
   </Dialog.Content>
 {/snippet}
 
-<Sidebar.Provider class="h-screen">
+<Sidebar.Provider class="h-screen overflow-y-hidden">
   <!-- Sidebar -->
   <AppSidebar
     {explorerState}
@@ -170,7 +186,7 @@
   />
 
   <!-- Main content -->
-  <Sidebar.Inset class="h-full">
+  <Sidebar.Inset class="h-full ">
     <!-- Dialog -->
     <Dialog.Root open={dialogOpened}>
       <!-- <Dialog.Trigger class={buttonVariants({ variant: "outline" })}
@@ -192,6 +208,8 @@
       <!-- Toolbar -->
       <div class="p-1 flex w-full justify-end gap-1">
         <Button
+          disabled={!explorerState?.selectedFile.path ||
+            !explorerState.selectedFile.name.endsWith(".hurl")}
           onclick={() => {
             if (runningHurl) return;
 
@@ -206,17 +224,16 @@
             Running
           {:else}
             <Play />
-            {#if explorerState?.selectedFile.path}
-              Run
-            {:else}
-              Save & Run
-            {/if}
+            Run
           {/if}</Button
         >
 
         <Button variant="outline"><Save /></Button>
         <Button variant="outline" onclick={showNewFolderDialog}
           ><FolderPlus /></Button
+        >
+        <Button variant="outline" onclick={() => showSaveFileDialog("")}>
+          <FilePlus /></Button
         >
       </div>
 

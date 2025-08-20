@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -36,6 +37,7 @@ type FileExplorerState struct {
 }
 
 type ReturnValue struct {
+	FileContent  string            `json:"fileContent,omitempty"`
 	FileExplorer FileExplorerState `json:"fileExplorer"`
 	Files        []FileInfo        `json:"files"`
 	Error        string            `json:"error,omitempty"`
@@ -145,6 +147,11 @@ func (a *App) GetFiles() ReturnValue {
 	return ReturnValue{Files: files, FileExplorer: a.explorerState}
 }
 
+func (a *App) SetCurrentFile(ctx context.Context, file FileInfo) {
+	a.explorerState.SelectedFile = file
+	runtime.WindowSetTitle(ctx, file.Path)
+}
+
 func (a *App) ChangeDirectory(path string) ReturnValue {
 	fileInfo, err := createFileInfo(path)
 	if err != nil {
@@ -174,7 +181,8 @@ func (a *App) SelectFile(filePath string) ReturnValue {
 		return ReturnValue{Error: fmt.Sprintf("file does not exist: %s", filePath)}
 	}
 
-	a.explorerState.SelectedFile = fileInfo
+	a.SetCurrentFile(a.ctx, fileInfo)
+	// a.explorerState.SelectedFile = fileInfo
 	return ReturnValue{
 		FileExplorer: a.explorerState,
 	}
@@ -185,7 +193,8 @@ func (a *App) GetSelectedFile() FileInfo {
 }
 
 func (a *App) ClearSelection() {
-	a.explorerState.SelectedFile = FileInfo{}
+	a.SetCurrentFile(a.ctx, FileInfo{})
+	// a.explorerState.SelectedFile = FileInfo{}
 }
 
 func (a *App) GetExplorerState() ReturnValue {
@@ -194,24 +203,24 @@ func (a *App) GetExplorerState() ReturnValue {
 	}
 }
 
-func (a *App) GetFileContent(filePath string) (string, error) {
+func (a *App) GetFileContent(filePath string) ReturnValue {
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to open file: %w", err)
+		return ReturnValue{Error: fmt.Sprintf("failed to open file: %v", err)}
 	}
 	defer file.Close()
 
 	content, err := io.ReadAll(file)
 	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
+		return ReturnValue{Error: fmt.Sprintf("failed to read file: %v", err)}
 	}
 
-	return string(content), nil
+	return ReturnValue{FileContent: string(content)}
 }
 
 func (a *App) selectedFileOutputPath() string {
-	return filepath.Dir((filepath.Join(TEMP_DIR_PATH, a.explorerState.SelectedFile.Path)))
+	return filepath.Join(TEMP_DIR_PATH, a.explorerState.SelectedFile.Path)
 }
 
 func (a *App) selectedFileReportPath() string {
@@ -304,6 +313,11 @@ func (a *App) GetHurlResult(filePath string) ReturnValue {
 	reportPath := a.selectedFileReportPath()
 	outputPath := a.selectedFileOutputPath()
 
+	// Check if the dir exists
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		return ReturnValue{}
+	}
+
 	var report HurlReport
 	if reportData, readErr := os.ReadFile(reportPath); readErr == nil {
 		if parseErr := json.Unmarshal(reportData, &report); parseErr != nil {
@@ -340,7 +354,8 @@ func (a *App) CreateNewFile(fileName string, fileContent string) ReturnValue {
 
 	fmt.Println("New file created:", newFile.Name)
 
-	a.explorerState.SelectedFile = newFile
+	a.SetCurrentFile(a.ctx, newFile)
+	// a.explorerState.SelectedFile = newFile
 
 	return ReturnValue{}
 }

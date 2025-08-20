@@ -81,3 +81,7 @@ export function SelectFile(arg1) {
 export function SetCache(arg1, arg2) {
   return window['go']['main']['App']['SetCache'](arg1, arg2);
 }
+
+export function SetCurrentFile(arg1, arg2) {
+  return window['go']['main']['App']['SetCurrentFile'](arg1, arg2);
+}
