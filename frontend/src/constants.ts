@@ -11,3 +11,9 @@ export const timingsDescription: Record<string, string> = {
     end_call: "Call end timestamp - ISO 8601 formatted timestamp indicating when the HTTP response was fully received."
 };
 
+
+export const responseTypes = [
+    { value: "json", label: "JSON" },
+    { value: "xml", label: "XML" },
+    { value: "html", label: "HTML" }
+];

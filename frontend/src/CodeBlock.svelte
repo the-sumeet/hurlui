@@ -1,7 +1,9 @@
 <script lang="ts">
     import ace from "ace-builds";
     import "ace-builds/src-noconflict/theme-chaos"; // Example theme
-    import "ace-builds/src-noconflict/mode-markdown"; // Markdown syntax support
+    import "ace-builds/src-noconflict/mode-html";
+    import "ace-builds/src-noconflict/mode-json";
+    import "ace-builds/src-noconflict/mode-xml";
     import { onMount, onDestroy } from "svelte";
     import { getContext } from "svelte";
     import { appState } from "./state.svelte";
