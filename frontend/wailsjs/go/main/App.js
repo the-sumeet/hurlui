@@ -85,3 +85,7 @@ export function SetCache(arg1, arg2) {
 export function SetCurrentFile(arg1, arg2) {
   return window['go']['main']['App']['SetCurrentFile'](arg1, arg2);
 }
+
+export function WriteToSelectedFile(arg1) {
+  return window['go']['main']['App']['WriteToSelectedFile'](arg1);
+}

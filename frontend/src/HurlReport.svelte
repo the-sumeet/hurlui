@@ -1,12 +1,7 @@
 <script lang="ts">
     import type { main } from "wailsjs/go/models";
-    import { Textarea } from "$lib/Components/ui/textarea/index.js";
     import * as Tooltip from "$lib/components/ui/tooltip/index.js";
-    import { Badge } from "$lib/components/ui/badge/index.js";
     import { Info } from "lucide-svelte";
-    import { timingsDescription } from "./constants";
-    import { snakeToTitleCase } from "./utils";
-    import CodeBlock from "./CodeBlock.svelte";
     import * as Select from "$lib/Components/ui/select/index.js";
 
     import ResponseCall from "./ResponseCall.svelte";
@@ -40,55 +35,7 @@
 
         return result;
     }
-
-    function getResponseHeaders(call: main.HurlCall): string {
-        let result = "";
-        call.response.headers.forEach((element) => {
-            result += `${element.name}: ${element.value}\n`;
-        });
-        return result;
-    }
-
-    function getResponseMode(call: main.HurlCall): string {
-        const contentTypeHeader = call.response.headers.find(
-            (header) => header.name.toLowerCase() === "content-type",
-        );
-
-        if (!contentTypeHeader) return "html";
-
-        const contentType = contentTypeHeader.value.toLowerCase();
-
-        if (
-            contentType.includes("application/json") ||
-            contentType.includes("text/json")
-        ) {
-            return "json";
-        } else if (
-            contentType.includes("application/xml") ||
-            contentType.includes("text/xml")
-        ) {
-            return "xml";
-        } else {
-            return "html";
-        }
-    }
 </script>
-
-{#snippet timingRow(key: string, value: string, tooltip: string | null)}
-    <div class="flex gap-1">
-        {#if tooltip}
-            <Tooltip.Provider>
-                <Tooltip.Root>
-                    <Tooltip.Trigger><Info size={16} /></Tooltip.Trigger>
-                    <Tooltip.Content>
-                        <p>{tooltip}</p>
-                    </Tooltip.Content>
-                </Tooltip.Root>
-            </Tooltip.Provider>
-        {/if}
-        <p class="text-sm">{key}: {value}</p>
-    </div>
-{/snippet}
 
 <div class="flex-1 flex flex-col overflow-y-hidden p-1 h-full">
     <!-- Files/sessions list -->

@@ -360,6 +360,26 @@ func (a *App) CreateNewFile(fileName string, fileContent string) ReturnValue {
 	return ReturnValue{}
 }
 
+func (a *App) WriteToSelectedFile(content string) ReturnValue {
+
+	filePath := a.explorerState.SelectedFile.Path
+
+	if filePath == "" {
+		return ReturnValue{Error: "no file selected"}
+	}
+
+	// Check if file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return ReturnValue{Error: fmt.Sprintf("file does not exist: %s", filePath)}
+	}
+
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to write to file: %w", err)}
+	}
+
+	return ReturnValue{}
+}
+
 func (a *App) CreateFolder(folderName string) ReturnValue {
 	// Create a new folder in the current directory
 	folderPath := filepath.Join(a.explorerState.CurrentDir.Path, folderName)

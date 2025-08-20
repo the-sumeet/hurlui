@@ -10,6 +10,7 @@
     GetFileContent,
     GetFiles,
     GetHurlResult,
+    WriteToSelectedFile,
   } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
   import { onMount } from "svelte";
@@ -40,6 +41,11 @@
   let hurlReport: main.HurlSession[] | null = $state(null);
   let dialogInput: string = $state("");
   let inputFileContent: string = $state("");
+  $effect(() => {
+    if (explorerState?.selectedFile) {
+      WriteToSelectedFile(inputFileContent);
+    }
+  });
 
   function showSaveFileDialog(fileContent: string = "") {
     if (fileContent == "") {

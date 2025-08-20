@@ -5,10 +5,16 @@
     import "ace-builds/src-noconflict/mode-json";
     import "ace-builds/src-noconflict/mode-xml";
     import { onMount, onDestroy } from "svelte";
-    import { getContext } from "svelte";
-    import { appState } from "./state.svelte";
 
     let { value, mode } = $props();
+
+    $effect(() => {
+        if (mode && editor) {
+            const session = editor.getSession();
+            session.setMode(`ace/mode/${mode}`);
+            console.log("Mode set to:", mode);
+        }
+    });
 
     let theme = "chaos";
     let fontSize = 14;

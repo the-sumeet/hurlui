@@ -157,6 +157,7 @@
                         <Tabs.Content value="password"
                             ><CodeBlock
                                 value={getResponseHeaders(call)}
+                                mode="json"
                             /></Tabs.Content
                         >
                     </Tabs.Root>

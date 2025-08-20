@@ -44,3 +44,5 @@ export function SelectFile(arg1:string):Promise<main.ReturnValue>;
 export function SetCache(arg1:string,arg2:main.HurlResult):Promise<void>;
 
 export function SetCurrentFile(arg1:context.Context,arg2:main.FileInfo):Promise<void>;
+
+export function WriteToSelectedFile(arg1:string):Promise<main.ReturnValue>;
