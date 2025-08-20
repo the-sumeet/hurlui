@@ -1,13 +1,12 @@
 <script lang="ts">
     import ace from "ace-builds";
-    import "ace-builds/src-noconflict/theme-github_dark"; // Example theme
+    import "ace-builds/src-noconflict/theme-chaos"; // Example theme
     import "ace-builds/src-noconflict/mode-markdown"; // Markdown syntax support
     import { onMount, onDestroy } from "svelte";
 
     let { content = $bindable() } = $props();
 
-    let theme = "github_dark";
-    let mode = "markdown";
+    let theme = "chaos";
     let fontSize = 14;
 
     let editor: ace.Editor;
@@ -22,7 +21,7 @@
     // Initialize editor
     onMount(async () => {
         editor = ace.edit(editorElement, {
-            mode: `ace/mode/${mode}`,
+            // mode: `ace/mode/${mode}`,
             theme: `ace/theme/${theme}`,
             fontSize: `${fontSize}px`,
             // value: selectedFileContent,

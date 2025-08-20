@@ -1,6 +1,6 @@
 <script lang="ts">
     import ace from "ace-builds";
-    import "ace-builds/src-noconflict/theme-github"; // Example theme
+    import "ace-builds/src-noconflict/theme-chaos"; // Example theme
     import "ace-builds/src-noconflict/mode-markdown"; // Markdown syntax support
     import { onMount, onDestroy } from "svelte";
     import { getContext } from "svelte";
@@ -8,7 +8,7 @@
 
     let { value } = $props();
 
-    let theme = "github";
+    let theme = "chaos";
     let mode = "markdown";
     let fontSize = 14;
 
