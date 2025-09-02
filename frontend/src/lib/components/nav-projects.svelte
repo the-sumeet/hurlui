@@ -14,12 +14,14 @@
 		onDirSelect,
 		onFileSelect,
 		onNavigateUp,
+		isBusy = false,
 	}: {
 		explorerState?: main.FileExplorerState | null;
 		files?: main.FileInfo[] | null;
 		onDirSelect: (dir: main.FileInfo) => void;
 		onFileSelect: (file: main.FileInfo) => void;
 		onNavigateUp: () => void;
+		isBusy?: boolean;
 	} = $props();
 
 	$inspect(files);
@@ -34,7 +36,9 @@
 	<Sidebar.MenuItem>
 		<Sidebar.MenuButton
 			isActive={item.path === explorerState?.selectedFile?.path}
+			aria-disabled={isBusy}
 			onclick={() => {
+				if (isBusy) return;
 				if (onclick) {
 					onclick(item);
 				} else if (item.isDir) {
@@ -58,7 +62,7 @@
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
-					<Sidebar.MenuAction showOnHover {...props}>
+					<Sidebar.MenuAction showOnHover {...props} aria-disabled={isBusy}>
 						<EllipsisIcon />
 						<span class="sr-only">More</span>
 					</Sidebar.MenuAction>

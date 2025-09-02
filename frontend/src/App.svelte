@@ -188,7 +188,9 @@
     </div>
     {#if dialog.onclick}
       <Dialog.Footer>
-        <Button type="button" onclick={dialog.onclick}>Save changes</Button>
+        <Button type="button" onclick={dialog.onclick} disabled={runningHurl}
+          >Save changes</Button
+        >
       </Dialog.Footer>
     {/if}
   </Dialog.Content>
@@ -202,6 +204,7 @@
     {onDirSelect}
     {onFileSelect}
     {onNavigateUp}
+    isBusy={runningHurl}
     class="h-full"
   />
 
@@ -219,7 +222,7 @@
 
     <!-- Header -->
     <header class="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-      <Sidebar.Trigger class="-ml-1" />
+      <Sidebar.Trigger class="-ml-1" disabled={runningHurl} />
       <Separator
         orientation="vertical"
         class="mr-2 data-[orientation=vertical]:h-4"
@@ -228,7 +231,7 @@
       <!-- Toolbar -->
       <div class="p-1 flex w-full justify-end gap-1">
         <Button
-          disabled={!explorerState?.selectedFile.path ||
+          disabled={runningHurl || !explorerState?.selectedFile.path ||
             !explorerState.selectedFile.name.endsWith(".hurl")}
           onclick={() => {
             if (runningHurl) return;
@@ -250,6 +253,7 @@
 
         <Button
           variant="outline"
+          disabled={runningHurl}
           onclick={() => {
             if (!explorerState?.selectedFile?.path) {
               // No file yet — prompt to save as new
@@ -266,10 +270,10 @@
         >
           <Save />
         </Button>
-        <Button variant="outline" onclick={showNewFolderDialog}
+        <Button variant="outline" onclick={showNewFolderDialog} disabled={runningHurl}
           ><FolderPlus /></Button
         >
-        <Button variant="outline" onclick={() => showSaveFileDialog("")}>
+        <Button variant="outline" onclick={() => showSaveFileDialog("")} disabled={runningHurl}>
           <FilePlus /></Button
         >
       </div>
