@@ -21,11 +21,15 @@ export function ExecuteHurl(arg1:string):Promise<main.ReturnValue>;
 
 export function ExistsInCache(arg1:string):Promise<boolean>;
 
+export function GetAvailableEnvGroups():Promise<main.ReturnValue>;
+
 export function GetCache(arg1:string):Promise<main.HurlResult>;
 
 export function GetCacheKeys():Promise<Array<string>>;
 
 export function GetCurrentDirectory():Promise<main.FileInfo>;
+
+export function GetEnvVars(arg1:string):Promise<main.ReturnValue>;
 
 export function GetExplorerState():Promise<main.ReturnValue>;
 

@@ -36,6 +36,23 @@
   let dialogOpened = $derived(appState.dialog != null);
 
   let explorerState: main.FileExplorerState | null = $state(null);
+  $effect(() => {
+    if (!explorerState?.selectedFile?.path) return;
+
+    // Todo: fetch file content only if new file is selected.
+    GetFileContent(explorerState?.selectedFile?.path!).then((result) => {
+      inputFileContent = result.fileContent || "";
+      GetHurlResult(explorerState?.selectedFile?.path!).then((result) => {
+        hurlReport = result.hurlReport || null;
+      });
+    });
+
+    if (explorerState?.selectedFile) {
+      GetHurlResult(explorerState?.selectedFile?.path).then((result) => {
+        hurlReport = result.hurlReport || null;
+      });
+    }
+  });
   let files: main.FileInfo[] | null = $state(null);
   let runningHurl: boolean = $state(false);
   let hurlReport: main.HurlSession[] | null = $state(null);
@@ -102,14 +119,11 @@
 
   function onFileSelect(file: main.FileInfo) {
     SelectFile(file.path).then((select_file_result) => {
-      GetFileContent(file.path).then((result) => {
-        inputFileContent = result.fileContent || "";
-        explorerState = select_file_result.fileExplorer;
+      explorerState = select_file_result.fileExplorer;
 
-        GetHurlResult(explorerState.selectedFile.path).then((result) => {
-          hurlReport = result.hurlReport || null;
-        });
-      });
+      // GetFileContent(file.path).then((result) => {
+      //   inputFileContent = result.fileContent || "";
+      // });
     });
   }
 

@@ -29,9 +29,21 @@
             theme: `ace/theme/${theme}`,
             fontSize: `${fontSize}px`,
             // value: selectedFileContent,
+            value: value,
         });
 
-        editor.setValue(value, -1);
+        // editor.setValue(value, -1);
+
+        // editor.commands.addCommands([
+        //     {
+        //         name: "find",
+        //         bindKey: { win: "Ctrl-F", mac: "Cmd-F" },
+        //         exec: function (editor) {
+        //             editor.execCommand("find");
+        //             editor.searchBox.show();
+        //         },
+        //     },
+        // ]);
 
         // Handle window resize
         const resizeObserver = new ResizeObserver(() => editor.resize());
