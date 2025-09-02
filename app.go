@@ -37,8 +37,8 @@ type FileExplorerState struct {
 }
 
 type EnvConfig struct {
-	Global      map[string]string            `json:"global"`
-	Selectable  map[string]map[string]string `json:"selectable"`
+	Global     map[string]string            `json:"global"`
+	Selectable map[string]map[string]string `json:"selectable"`
 }
 
 type ReturnValue struct {
@@ -260,9 +260,9 @@ func (a *App) ExecuteHurl(filePath string) ReturnValue {
 
 	command := []string{"hurl", "--report-json", outputDir, a.explorerState.SelectedFile.Path}
 	cmd := exec.Command(command[0], command[1:]...)
-	_, err := cmd.CombinedOutput()
+	bytes, err := cmd.CombinedOutput()
 	if err != nil {
-		return ReturnValue{Error: fmt.Sprintf("failed to execute hurl: %w", err)}
+		return ReturnValue{Error: fmt.Sprintf("failed to execute hurl: %w", string(bytes))}
 	}
 
 	// Read and parse JSON report from outputDir
@@ -387,8 +387,8 @@ func (a *App) WriteToSelectedFile(content string) ReturnValue {
 }
 
 func (a *App) CreateFolder(folderName string) ReturnValue {
-    // Create a new folder in the current directory
-    folderPath := filepath.Join(a.explorerState.CurrentDir.Path, folderName)
+	// Create a new folder in the current directory
+	folderPath := filepath.Join(a.explorerState.CurrentDir.Path, folderName)
 
 	// Check if folder already exists
 	if _, err := os.Stat(folderPath); err == nil {
@@ -399,9 +399,9 @@ func (a *App) CreateFolder(folderName string) ReturnValue {
 		return ReturnValue{Error: fmt.Sprintf("failed to create new folder: %w", err)}
 	}
 
-    // Do not change current directory; just acknowledge success.
-    // Frontend will refresh listing and remain in the same directory.
-    return ReturnValue{FileExplorer: a.explorerState}
+	// Do not change current directory; just acknowledge success.
+	// Frontend will refresh listing and remain in the same directory.
+	return ReturnValue{FileExplorer: a.explorerState}
 }
 
 // GetFileContentAndExecuteHurl reads a hurl file content and executes it
@@ -410,12 +410,12 @@ func (a *App) getConfigDir() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get user home directory: %w", err)
 	}
-	
+
 	configDir := filepath.Join(homeDir, ".config", "hurlui")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create config directory: %w", err)
 	}
-	
+
 	return configDir, nil
 }
 
@@ -424,33 +424,33 @@ func (a *App) loadEnvConfig() (*EnvConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	envConfigPath := filepath.Join(configDir, "env.json")
-	
+
 	if _, err := os.Stat(envConfigPath); os.IsNotExist(err) {
 		return &EnvConfig{
 			Global:     make(map[string]string),
 			Selectable: make(map[string]map[string]string),
 		}, nil
 	}
-	
+
 	data, err := os.ReadFile(envConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read env config file: %w", err)
 	}
-	
+
 	var config EnvConfig
 	if err := json.Unmarshal(data, &config); err != nil {
 		return nil, fmt.Errorf("failed to parse env config: %w", err)
 	}
-	
+
 	if config.Global == nil {
 		config.Global = make(map[string]string)
 	}
 	if config.Selectable == nil {
 		config.Selectable = make(map[string]map[string]string)
 	}
-	
+
 	return &config, nil
 }
 
@@ -459,13 +459,13 @@ func (a *App) GetEnvVars(selectedEnvGroup string) ReturnValue {
 	if err != nil {
 		return ReturnValue{Error: err.Error()}
 	}
-	
+
 	envVars := make(map[string]string)
-	
+
 	for key, value := range config.Global {
 		envVars[key] = value
 	}
-	
+
 	if selectedEnvGroup != "" {
 		if selectedGroup, exists := config.Selectable[selectedEnvGroup]; exists {
 			for key, value := range selectedGroup {
@@ -473,7 +473,7 @@ func (a *App) GetEnvVars(selectedEnvGroup string) ReturnValue {
 			}
 		}
 	}
-	
+
 	return ReturnValue{EnvVars: envVars}
 }
 
@@ -482,12 +482,12 @@ func (a *App) GetAvailableEnvGroups() ReturnValue {
 	if err != nil {
 		return ReturnValue{Error: err.Error()}
 	}
-	
+
 	groups := make([]string, 0, len(config.Selectable))
 	for groupName := range config.Selectable {
 		groups = append(groups, groupName)
 	}
-	
+
 	return ReturnValue{Files: []FileInfo{{Name: "env_groups"}}, EnvVars: map[string]string{"groups": fmt.Sprintf("%v", groups)}}
 }
 

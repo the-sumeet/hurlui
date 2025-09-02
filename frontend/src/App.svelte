@@ -150,6 +150,19 @@
     ExecuteHurl(explorerState?.selectedFile?.path).then((result) => {
       console.log("Hurl execution result:", result);
 
+      if (result?.error) {
+        appState.dialog = {
+          title: "Execution Error",
+          description: result.error,
+          buttonTitle: "Close",
+          onclick: () => {
+            appState.dialog = null;
+          },
+        };
+        runningHurl = false;
+        return;
+      }
+
       if (explorerState?.selectedFile) {
         GetHurlResult(explorerState?.selectedFile?.path).then((result) => {
           hurlReport = result.hurlReport || null;
@@ -189,7 +202,7 @@
     {#if dialog.onclick}
       <Dialog.Footer>
         <Button type="button" onclick={dialog.onclick} disabled={runningHurl}
-          >Save changes</Button
+          >{dialog.buttonTitle ?? "OK"}</Button
         >
       </Dialog.Footer>
     {/if}

@@ -67,6 +67,18 @@
     }
 
     let responseType = $state(getResponseMode(call));
+
+    const statusCode = call.response.status;
+
+    const statusClass = (function () {
+        const sc = statusCode ?? 0;
+        if (sc >= 200 && sc < 300) return "text-green-600";
+        if (sc >= 300 && sc < 400) return "text-yellow-600";
+        if (sc >= 400 && sc < 500) return "text-orange-600";
+        if (sc >= 500) return "text-red-600";
+        return "text-muted-foreground";
+    })();
+
     const triggerContent = $derived(
         responseTypes.find((f) => f.value === responseType)?.label ??
             "Select a type",
@@ -185,7 +197,7 @@
             </Tabs.Root>
         </Card.Content>
         <Card.Footer>
-            <p class="text-green-600">200 OK</p>
+            <p class={statusClass}>{statusCode ?? ""}</p>
         </Card.Footer>
     </Card.Root>
 </div>
