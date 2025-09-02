@@ -1,10 +1,10 @@
 <script lang="ts">
   import AppSidebar from "$lib/components/app-sidebar.svelte";
-  import { Separator } from "$lib/Components/ui/separator/index.js";
+  import { Separator } from "$lib/components/ui/separator/index.js";
   import { Play } from "lucide-svelte";
-  import * as Sidebar from "$lib/Components/ui/sidebar/index.js";
+  import * as Sidebar from "$lib/components/ui/sidebar/index.js";
   import "./app.css";
-  import * as Resizable from "$lib/Components/ui/resizable/index.js";
+  import * as Resizable from "$lib/components/ui/resizable/index.js";
   import Editor from "./Editor.svelte";
   import {
     GetFileContent,
@@ -18,9 +18,9 @@
   import { FolderPlus } from "lucide-svelte";
   import { Save } from "lucide-svelte";
   import { Button, buttonVariants } from "$lib/components/ui/button/index.js";
-  import * as Dialog from "$lib/Components/ui/dialog/index.js";
-  import { Input } from "$lib/Components/ui/input/index.js";
-  import { Label } from "$lib/Components/ui/label/index.js";
+  import * as Dialog from "$lib/components/ui/dialog/index.js";
+  import { Input } from "$lib/components/ui/input/index.js";
+  import { Label } from "$lib/components/ui/label/index.js";
   import { FilePlus } from "lucide-svelte";
   import {
     ChangeDirectory,
@@ -248,7 +248,24 @@
           {/if}</Button
         >
 
-        <Button variant="outline"><Save /></Button>
+        <Button
+          variant="outline"
+          onclick={() => {
+            if (!explorerState?.selectedFile?.path) {
+              // No file yet — prompt to save as new
+              showSaveFileDialog();
+            } else {
+              // Persist current buffer to selected file
+              WriteToSelectedFile(inputFileContent).then((res) => {
+                if (res?.error) {
+                  console.error("Failed to save file:", res.error);
+                }
+              });
+            }
+          }}
+        >
+          <Save />
+        </Button>
         <Button variant="outline" onclick={showNewFolderDialog}
           ><FolderPlus /></Button
         >

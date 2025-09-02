@@ -1,11 +1,11 @@
 <script lang="ts">
-    import * as Card from "$lib/Components/ui/card/index.js";
-    import * as Tabs from "$lib/Components/ui/tabs/index.js";
-    import * as Select from "$lib/Components/ui/select/index.js";
+    import * as Card from "$lib/components/ui/card/index.js";
+    import * as Tabs from "$lib/components/ui/tabs/index.js";
+    import * as Select from "$lib/components/ui/select/index.js";
     import { Badge } from "$lib/components/ui/badge/index.js";
     import { main } from "../wailsjs/go/models";
     import CodeBlock from "./CodeBlock.svelte";
-    import { Textarea } from "$lib/Components/ui/textarea/index.js";
+    import { Textarea } from "$lib/components/ui/textarea/index.js";
     import { snakeToTitleCase } from "./utils";
     import { responseTypes, timingsDescription } from "./constants";
     import * as Tooltip from "$lib/components/ui/tooltip/index.js";

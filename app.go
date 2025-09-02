@@ -387,8 +387,8 @@ func (a *App) WriteToSelectedFile(content string) ReturnValue {
 }
 
 func (a *App) CreateFolder(folderName string) ReturnValue {
-	// Create a new folder in the current directory
-	folderPath := filepath.Join(a.explorerState.CurrentDir.Path, folderName)
+    // Create a new folder in the current directory
+    folderPath := filepath.Join(a.explorerState.CurrentDir.Path, folderName)
 
 	// Check if folder already exists
 	if _, err := os.Stat(folderPath); err == nil {
@@ -399,14 +399,9 @@ func (a *App) CreateFolder(folderName string) ReturnValue {
 		return ReturnValue{Error: fmt.Sprintf("failed to create new folder: %w", err)}
 	}
 
-	newFolder, err := createFileInfo(folderPath)
-	if err != nil {
-		return ReturnValue{Error: fmt.Sprintf("failed to create folder info: %w", err)}
-	}
-
-	a.explorerState.CurrentDir = newFolder
-
-	return ReturnValue{}
+    // Do not change current directory; just acknowledge success.
+    // Frontend will refresh listing and remain in the same directory.
+    return ReturnValue{FileExplorer: a.explorerState}
 }
 
 // GetFileContentAndExecuteHurl reads a hurl file content and executes it

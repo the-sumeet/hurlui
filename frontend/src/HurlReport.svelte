@@ -2,7 +2,7 @@
     import type { main } from "wailsjs/go/models";
     import * as Tooltip from "$lib/components/ui/tooltip/index.js";
     import { Info } from "lucide-svelte";
-    import * as Select from "$lib/Components/ui/select/index.js";
+    import * as Select from "$lib/components/ui/select/index.js";
 
     import ResponseCall from "./ResponseCall.svelte";
     let {
