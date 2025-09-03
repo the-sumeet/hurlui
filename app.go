@@ -238,7 +238,7 @@ func (a *App) selectedFileStorePath() string {
 	return filepath.Join(a.selectedFileOutputPath(), "store")
 }
 
-func (a *App) ExecuteHurl(filePath string) ReturnValue {
+func (a *App) ExecuteHurl(filePath string, envName string) ReturnValue {
 
 	// Create dir if not exists
 	if err := os.MkdirAll(TEMP_DIR_PATH, 0755); err != nil {
@@ -258,7 +258,34 @@ func (a *App) ExecuteHurl(filePath string) ReturnValue {
 	os.Remove(reportPath)
 	os.MkdirAll(outputDir, 0755)
 
-	command := []string{"hurl", "--report-json", outputDir, a.explorerState.SelectedFile.Path}
+	// Build hurl command with env variables
+	// Load env config
+	config, err := a.loadEnvConfig()
+	if err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to load env config: %v", err)}
+	}
+
+	// Merge globals with selected environment (env overrides globals)
+	vars := map[string]string{}
+	for k, v := range config.Global {
+		vars[k] = v
+	}
+	if envName != "" {
+		if envMap, ok := config.Environments[envName]; ok {
+			for k, v := range envMap {
+				vars[k] = v
+			}
+		}
+	}
+
+	command := []string{"hurl", "--report-json", outputDir}
+	// Append variables as --variable key=value
+	for k, v := range vars {
+		command = append(command, "--variable", fmt.Sprintf("%s=%s", k, v))
+	}
+	// Finally the file path
+	command = append(command, a.explorerState.SelectedFile.Path)
+
 	cmd := exec.Command(command[0], command[1:]...)
 	bytes, err := cmd.CombinedOutput()
 	if err != nil {
@@ -284,7 +311,7 @@ func (a *App) ExecuteHurl(filePath string) ReturnValue {
 }
 
 func (a *App) insertResponseData(h *HurlReport, filePath string) error {
-
+	fmt.Println("Inserting response data from files in:", h)
 	outputDir := a.selectedFileOutputPath()
 
 	for i := range *h {

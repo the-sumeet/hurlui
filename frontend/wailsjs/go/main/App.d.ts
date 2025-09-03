@@ -17,7 +17,7 @@ export function CreateNewFile(arg1:string,arg2:string):Promise<main.ReturnValue>
 
 export function DeleteCache(arg1:string):Promise<void>;
 
-export function ExecuteHurl(arg1:string):Promise<main.ReturnValue>;
+export function ExecuteHurl(arg1:string,arg2:string):Promise<main.ReturnValue>;
 
 export function ExistsInCache(arg1:string):Promise<boolean>;
 

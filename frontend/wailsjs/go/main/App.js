@@ -30,8 +30,8 @@ export function DeleteCache(arg1) {
   return window['go']['main']['App']['DeleteCache'](arg1);
 }
 
-export function ExecuteHurl(arg1) {
-  return window['go']['main']['App']['ExecuteHurl'](arg1);
+export function ExecuteHurl(arg1, arg2) {
+  return window['go']['main']['App']['ExecuteHurl'](arg1, arg2);
 }
 
 export function ExistsInCache(arg1) {

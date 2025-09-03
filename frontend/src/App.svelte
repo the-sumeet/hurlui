@@ -153,29 +153,28 @@
       return;
     }
     runningHurl = true;
-    ExecuteHurl(explorerState?.selectedFile?.path).then((result) => {
-      console.log("Hurl execution result:", result);
+    ExecuteHurl(explorerState?.selectedFile?.path, selectedEnv).then(
+      (result) => {
+        console.log("Hurl execution result:", result);
 
-      if (result?.error) {
-        appState.dialog = {
-          title: "Execution Error",
-          description: result.error,
-          buttonTitle: "Close",
-          onclick: () => {
-            appState.dialog = null;
-          },
-        };
+        if (result?.error) {
+          appState.dialog = {
+            title: "Execution Error",
+            description: result.error,
+            buttonTitle: "Close",
+            onclick: () => {
+              appState.dialog = null;
+            },
+          };
+          runningHurl = false;
+          return;
+        }
+
+        console.log("result", result);
+        hurlReport = result.hurlReport || null;
         runningHurl = false;
-        return;
-      }
-
-      if (explorerState?.selectedFile) {
-        GetHurlResult(explorerState?.selectedFile?.path).then((result) => {
-          hurlReport = result.hurlReport || null;
-        });
-      }
-      runningHurl = false;
-    });
+      },
+    );
   }
 
   onMount(() => {
