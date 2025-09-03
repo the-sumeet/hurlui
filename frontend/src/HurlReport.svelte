@@ -11,13 +11,32 @@
         hurlReport: main.HurlSession[] | null;
     } = $props();
 
-    let triggerContent = $state("");
-    let entries: main.HurlEntry[] = $state([]);
+    // let entries: main.HurlEntry[] = $state([]);
     let selectedSessionIndex: string = $state("0");
+    // $effect(() => {
+    //     const index = parseInt(selectedSessionIndex);
+    //     triggerContent = hurlReport !== null ? hurlReport[index].filename : "";
+    //     entries = hurlReport !== null ? hurlReport[index].entries : [];
+    // });
+    let triggerContent = $derived.by(() => {
+        if (!hurlReport || hurlReport.length === 0) return "";
+        const index = Number.parseInt(selectedSessionIndex) || 0;
+        const safeIndex = Math.min(Math.max(index, 0), hurlReport.length - 1);
+        return hurlReport[safeIndex]?.filename ?? "";
+    });
+
+    let entries = $derived.by(() => {
+        if (!hurlReport || hurlReport.length === 0) return [] as main.HurlEntry[];
+        const index = Number.parseInt(selectedSessionIndex) || 0;
+        const safeIndex = Math.min(Math.max(index, 0), hurlReport.length - 1);
+        return hurlReport[safeIndex]?.entries ?? ([] as main.HurlEntry[]);
+    });
+
+    // Ensure selected index remains valid when hurlReport updates
     $effect(() => {
-        const index = parseInt(selectedSessionIndex);
-        triggerContent = hurlReport !== null ? hurlReport[index].filename : "";
-        entries = hurlReport !== null ? hurlReport[index].entries : [];
+        if (!hurlReport || hurlReport.length === 0) return;
+        const idx = Number.parseInt(selectedSessionIndex) || 0;
+        if (idx < 0 || idx >= hurlReport.length) selectedSessionIndex = "0";
     });
 
     function getEntryText(call: main.HurlCall): string {

@@ -244,7 +244,8 @@
       <!-- Toolbar -->
       <div class="p-1 flex w-full justify-end gap-1">
         <Button
-          disabled={runningHurl || !explorerState?.selectedFile.path ||
+          disabled={runningHurl ||
+            !explorerState?.selectedFile.path ||
             !explorerState.selectedFile.name.endsWith(".hurl")}
           onclick={() => {
             if (runningHurl) return;
@@ -283,10 +284,16 @@
         >
           <Save />
         </Button>
-        <Button variant="outline" onclick={showNewFolderDialog} disabled={runningHurl}
-          ><FolderPlus /></Button
+        <Button
+          variant="outline"
+          onclick={showNewFolderDialog}
+          disabled={runningHurl}><FolderPlus /></Button
         >
-        <Button variant="outline" onclick={() => showSaveFileDialog("")} disabled={runningHurl}>
+        <Button
+          variant="outline"
+          onclick={() => showSaveFileDialog("")}
+          disabled={runningHurl}
+        >
           <FilePlus /></Button
         >
       </div>

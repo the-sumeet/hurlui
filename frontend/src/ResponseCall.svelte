@@ -160,7 +160,7 @@
                                 </Select.Root>
                                 <div class="flex-1 h-full border rounded-xl">
                                     <CodeBlock
-                                        value={call.response.bodyContent}
+                                        value={call.response.bodyContent || call.response.body}
                                         mode={responseType}
                                     />
                                 </div>
