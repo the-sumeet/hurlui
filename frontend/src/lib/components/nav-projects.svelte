@@ -3,9 +3,8 @@
 	import * as Sidebar from "$lib/components/ui/sidebar/index.js";
 	import { useSidebar } from "$lib/components/ui/sidebar/index.js";
 	import EllipsisIcon from "@lucide/svelte/icons/ellipsis";
-	import FolderIcon from "@lucide/svelte/icons/folder";
-	import ShareIcon from "@lucide/svelte/icons/share";
-	import Trash2Icon from "@lucide/svelte/icons/trash-2";
+	import { ArrowDown } from "lucide-svelte";
+	import { ArrowDownUp } from "lucide-svelte";
 	import { main } from "../../../wailsjs/go/models";
 	import { Folder, File } from "lucide-svelte";
 	let {
@@ -31,6 +30,17 @@
 	$inspect(files);
 
 	const sidebar = useSidebar();
+
+	function isMarkdownFile(file: main.FileInfo): boolean {
+		return file.name.endsWith(".md") || file.name.endsWith(".markdown");
+	}
+	function isHurlFile(file: main.FileInfo): boolean {
+		return file.name.endsWith(".hurl");
+	}
+
+	function canOpenFile(file: main.FileInfo): boolean {
+		return file.isDir || isMarkdownFile(file) || isHurlFile(file);
+	}
 </script>
 
 {#snippet menuItem(
@@ -39,8 +49,9 @@
 )}
 	<Sidebar.MenuItem>
 		<Sidebar.MenuButton
-			isActive={item.path === explorerState?.selectedFile?.path}
-			aria-disabled={isBusy}
+			isActive={item.path === explorerState?.selectedFile?.path &&
+				canOpenFile(item)}
+			aria-disabled={isBusy || !canOpenFile(item)}
 			onclick={() => {
 				if (isBusy) return;
 				if (onclick) {
@@ -56,6 +67,10 @@
 				<a href="#!" {...props} title={item.path}>
 					{#if item.isDir}
 						<Folder />
+					{:else if isHurlFile(item)}
+						<ArrowDownUp color={"#f80288"} />
+					{:else if isMarkdownFile(item)}
+						<ArrowDown color={"#34a7ff"} />
 					{:else}
 						<File />
 					{/if}
@@ -63,34 +78,36 @@
 				</a>
 			{/snippet}
 		</Sidebar.MenuButton>
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<Sidebar.MenuAction
-						showOnHover
-						{...props}
-						aria-disabled={isBusy}
-					>
-						<EllipsisIcon />
-						<span class="sr-only">More</span>
-					</Sidebar.MenuAction>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content
-				class="w-48"
-				side={sidebar.isMobile ? "bottom" : "right"}
-				align={sidebar.isMobile ? "end" : "start"}
-			>
-				<DropdownMenu.Item onclick={() => onRename(item)}>
-					<span>Rename</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item onclick={() => onDelete(item)}>
-					<span>Delete</span>
-				</DropdownMenu.Item>
-				<!-- <DropdownMenu.Separator /> -->
-				<!-- extra items removed or repurposed -->
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
+		{#if canOpenFile(item)}
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger>
+					{#snippet child({ props })}
+						<Sidebar.MenuAction
+							showOnHover
+							{...props}
+							aria-disabled={isBusy}
+						>
+							<EllipsisIcon />
+							<span class="sr-only">More</span>
+						</Sidebar.MenuAction>
+					{/snippet}
+				</DropdownMenu.Trigger>
+				<DropdownMenu.Content
+					class="w-48"
+					side={sidebar.isMobile ? "bottom" : "right"}
+					align={sidebar.isMobile ? "end" : "start"}
+				>
+					<DropdownMenu.Item onclick={() => onRename(item)}>
+						<span>Rename</span>
+					</DropdownMenu.Item>
+					<DropdownMenu.Item onclick={() => onDelete(item)}>
+						<span>Delete</span>
+					</DropdownMenu.Item>
+					<!-- <DropdownMenu.Separator /> -->
+					<!-- extra items removed or repurposed -->
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+		{/if}
 	</Sidebar.MenuItem>
 {/snippet}
 
