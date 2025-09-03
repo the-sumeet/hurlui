@@ -395,7 +395,7 @@ export namespace main {
 	    files: FileInfo[];
 	    error?: string;
 	    hurlReport?: HurlSession[];
-	    envVars?: {[key: string]: string};
+	    envs?: string[];
 	
 	    static createFrom(source: any = {}) {
 	        return new ReturnValue(source);
@@ -408,7 +408,7 @@ export namespace main {
 	        this.files = this.convertValues(source["files"], FileInfo);
 	        this.error = source["error"];
 	        this.hurlReport = this.convertValues(source["hurlReport"], HurlSession);
-	        this.envVars = source["envVars"];
+	        this.envs = source["envs"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {
