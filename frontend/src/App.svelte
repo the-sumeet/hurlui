@@ -69,19 +69,15 @@
   let selectedEnv: string = $state("");
 
   function showSaveFileDialog(fileContent: string = "") {
-    if (fileContent == "") {
-      fileContent = inputFileContent;
-    }
-
     dialogInput = "untitled.hurl";
     appState.dialog = {
       title: "Save File",
       description: `Create a new Hurl file in ${explorerState?.currentDir?.path || ""}`,
       inputLabel: "File Name",
       onclick: () => {
-        if (!dialogInput.endsWith(".hurl")) {
-          dialogInput += ".hurl";
-        }
+        // if (!dialogInput.endsWith(".hurl")) {
+        //   dialogInput += ".hurl";
+        // }
         // Handle file save logic here
         console.log("Creating new file:", dialogInput);
         CreateNewFile(dialogInput, fileContent).then((result) => {
@@ -348,7 +344,10 @@
     >
       <!-- Input -->
       <Resizable.Pane defaultSize={50} class="h-full">
-        <Editor bind:content={inputFileContent} />
+        <Editor
+          bind:content={inputFileContent}
+          currentFile={explorerState?.currentDir}
+        />
       </Resizable.Pane>
 
       <!-- Output -->
