@@ -1,4 +1,7 @@
 build/bin
 node_modules
 frontend/dist
-*/**/.DS_STORE
+
+# macOS Finder metadata (case-insensitive, all dirs)
+.DS_Store
+.[Dd][Ss]_[Ss][Tt][Oo][Rr][Ee]

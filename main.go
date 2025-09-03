@@ -1,12 +1,12 @@
 package main
 
 import (
-    "embed"
+	"embed"
 
-    "github.com/wailsapp/wails/v2"
-    "github.com/wailsapp/wails/v2/pkg/options"
-    "github.com/wailsapp/wails/v2/pkg/options/assetserver"
-    "github.com/wailsapp/wails/v2/pkg/options/mac"
+	"github.com/wailsapp/wails/v2"
+	"github.com/wailsapp/wails/v2/pkg/options"
+	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/mac"
 )
 
 //go:embed all:frontend/dist
@@ -18,7 +18,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "hurlui",
+		Title:  "Hurl Studio",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{
