@@ -43,6 +43,8 @@ export function GetSelectedFile():Promise<main.FileInfo>;
 
 export function NavigateUp():Promise<main.ReturnValue>;
 
+export function RenamePath(arg1:string,arg2:string):Promise<main.ReturnValue>;
+
 export function SelectFile(arg1:string):Promise<main.ReturnValue>;
 
 export function SetCache(arg1:string,arg2:main.HurlResult):Promise<void>;

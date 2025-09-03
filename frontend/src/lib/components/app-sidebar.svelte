@@ -12,6 +12,7 @@
 		onDirSelect: (dir: main.FileInfo) => void;
 		onFileSelect: (file: main.FileInfo) => void;
 		onNavigateUp: () => void;
+		onRename: (item: main.FileInfo) => void;
 		isBusy?: boolean;
 		[key: string]: any;
 	}
@@ -23,6 +24,7 @@
 		onDirSelect,
 		onFileSelect,
 		onNavigateUp,
+		onRename,
 		isBusy = false,
 		...restProps
 	}: Props = $props();
@@ -62,6 +64,7 @@
 			{onDirSelect}
 			{onFileSelect}
 			{onNavigateUp}
+			onRename={onRename}
 			isBusy={isBusy}
 		/>
 		<!-- <NavSecondary items={data.navSecondary} class="mt-auto" /> -->

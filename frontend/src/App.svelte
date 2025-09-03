@@ -15,6 +15,7 @@
     WriteToSelectedFile,
     GetEnvVars,
     GetEnvFilePath,
+    RenamePath,
   } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
   import { onMount } from "svelte";
@@ -38,7 +39,17 @@
   import HurlReport from "./HurlReport.svelte";
   import { appState, type Dialog as AppDialog } from "./state.svelte";
 
-  let dialogOpened = $derived(appState.dialog != null);
+  // Control the Dialog.Root via binding so closing via ESC/click-out updates state
+  let dialogOpen: boolean = $state(false);
+  $effect(() => {
+    dialogOpen = appState.dialog != null;
+  });
+  $effect(() => {
+    if (!dialogOpen && appState.dialog) {
+      // Sync close actions from the Dialog component back to app state
+      appState.dialog = null;
+    }
+  });
 
   let explorerState: main.FileExplorerState | null = $state(null);
   $effect(() => {
@@ -61,7 +72,7 @@
   let files: main.FileInfo[] | null = $state(null);
   let runningHurl: boolean = $state(false);
   let hurlReport: main.HurlSession[] | null = $state(null);
-  let dialogInput: string = $state("");
+  // Dialog text is stored in appState.dialog.inputValue; no local mirror needed.
   let inputFileContent: string = $state("");
   let envFilePath: string = $state("");
 
@@ -69,18 +80,15 @@
   let selectedEnv: string = $state("");
 
   function showSaveFileDialog(fileContent: string = "") {
-    dialogInput = "untitled.hurl";
     appState.dialog = {
       title: "Save File",
       description: `Create a new Hurl file in ${explorerState?.currentDir?.path || ""}`,
       inputLabel: "File Name",
+      inputValue: "untitled.hurl",
       onclick: () => {
-        // if (!dialogInput.endsWith(".hurl")) {
-        //   dialogInput += ".hurl";
-        // }
-        // Handle file save logic here
-        console.log("Creating new file:", dialogInput);
-        CreateNewFile(dialogInput, fileContent).then((result) => {
+        const name = appState.dialog?.inputValue || "";
+        console.log("Creating new file:", name);
+        CreateNewFile(name, fileContent).then((result) => {
           if (result.error) {
             console.error("Failed to create new file:", result.error);
           } else {
@@ -93,16 +101,46 @@
   }
 
   function showNewFolderDialog() {
-    dialogInput = "NewFolder";
     appState.dialog = {
       title: "Create New Folder",
       description: `Create a new folder in ${explorerState?.currentDir?.path || ""}`,
       inputLabel: "Folder Name",
+      inputValue: "NewFolder",
       onclick: () => {
-        CreateFolder(dialogInput).then((result) => {
+        const name = appState.dialog?.inputValue || "";
+        CreateFolder(name).then((result) => {
           if (result.error) {
             console.error("Failed to create new folder:", result.error);
           } else {
+            fetchFiles();
+          }
+        });
+        appState.dialog = null;
+      },
+    };
+  }
+
+  function showRenameDialog(item: main.FileInfo) {
+    const dir = explorerState?.currentDir?.path || "";
+    appState.dialog = {
+      title: item.isDir ? "Rename Folder" : "Rename File",
+      description: `Rename ${item.path}`,
+      inputLabel: "New Name",
+      inputValue: item.name,
+      onclick: () => {
+        const newName = appState.dialog?.inputValue || "";
+        if (!newName) return;
+        RenamePath(item.path, newName).then((result) => {
+          if (result.error) {
+            console.error("Failed to rename:", result.error);
+          } else {
+            // If currently selected file is renamed, update selection
+            const newPath = `${dir}/${newName}`.replace(/\/+/g, "/");
+            if (explorerState?.selectedFile?.path === item.path) {
+              SelectFile(newPath).then((selectResult) => {
+                explorerState = selectResult.fileExplorer;
+              });
+            }
             fetchFiles();
           }
         });
@@ -200,7 +238,7 @@
       {#if dialog.inputLabel}
         <div class="grid grid-cols-4 items-center gap-4">
           <Label for="name" class="text-right">{dialog.inputLabel}</Label>
-          <Input id="name" bind:value={dialogInput} class="col-span-3" />
+          <Input id="name" bind:value={appState.dialog!.inputValue} class="col-span-3" />
         </div>
       {/if}
       <!-- <div class="grid grid-cols-4 items-center gap-4">
@@ -226,6 +264,7 @@
     {onDirSelect}
     {onFileSelect}
     {onNavigateUp}
+    onRename={showRenameDialog}
     isBusy={runningHurl}
     class="h-full"
   />
@@ -233,7 +272,7 @@
   <!-- Main content -->
   <Sidebar.Inset class="h-full ">
     <!-- Dialog -->
-    <Dialog.Root open={dialogOpened}>
+    <Dialog.Root bind:open={dialogOpen}>
       <!-- <Dialog.Trigger class={buttonVariants({ variant: "outline" })}
         >Edit Profile</Dialog.Trigger
       > -->

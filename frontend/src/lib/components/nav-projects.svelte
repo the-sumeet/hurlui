@@ -14,6 +14,7 @@
 		onDirSelect,
 		onFileSelect,
 		onNavigateUp,
+		onRename,
 		isBusy = false,
 	}: {
 		explorerState?: main.FileExplorerState | null;
@@ -21,6 +22,7 @@
 		onDirSelect: (dir: main.FileInfo) => void;
 		onFileSelect: (file: main.FileInfo) => void;
 		onNavigateUp: () => void;
+		onRename: (item: main.FileInfo) => void;
 		isBusy?: boolean;
 	} = $props();
 
@@ -77,9 +79,8 @@
 				side={sidebar.isMobile ? "bottom" : "right"}
 				align={sidebar.isMobile ? "end" : "start"}
 			>
-				<DropdownMenu.Item>
-					<FolderIcon class="text-muted-foreground" />
-					<span>View Project</span>
+				<DropdownMenu.Item onclick={() => onRename(item)}>
+					<span>Rename</span>
 				</DropdownMenu.Item>
 				<DropdownMenu.Item>
 					<ShareIcon class="text-muted-foreground" />

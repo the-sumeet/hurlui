@@ -275,6 +275,52 @@ func (a *App) CreateFolder(folderName string) ReturnValue {
 	return ReturnValue{FileExplorer: a.explorerState}
 }
 
+// RenamePath renames a file or folder within its current directory.
+// newName should be a base name (no path separators).
+func (a *App) RenamePath(oldPath string, newName string) ReturnValue {
+    if oldPath == "" {
+        return ReturnValue{Error: "old path is empty"}
+    }
+    if newName == "" {
+        return ReturnValue{Error: "new name is empty"}
+    }
+    if filepath.Base(newName) != newName {
+        return ReturnValue{Error: "new name must not contain path separators"}
+    }
+
+    // Ensure the old path exists
+    oldInfo, err := os.Stat(oldPath)
+    if err != nil {
+        return ReturnValue{Error: fmt.Sprintf("path does not exist: %v", err)}
+    }
+
+    dir := filepath.Dir(oldPath)
+    newPath := filepath.Join(dir, newName)
+
+    // Prevent overwriting existing paths
+    if _, err := os.Stat(newPath); err == nil {
+        return ReturnValue{Error: fmt.Sprintf("target already exists: %s", newPath)}
+    }
+
+    if err := os.Rename(oldPath, newPath); err != nil {
+        return ReturnValue{Error: fmt.Sprintf("failed to rename: %v", err)}
+    }
+
+    // Update explorer state if needed
+    if a.explorerState.SelectedFile.Path == oldPath {
+        a.explorerState.SelectedFile.Path = newPath
+        a.explorerState.SelectedFile.Name = filepath.Base(newPath)
+        a.explorerState.SelectedFile.IsDir = oldInfo.IsDir()
+    }
+    if a.explorerState.CurrentDir.Path == oldPath && oldInfo.IsDir() {
+        a.explorerState.CurrentDir.Path = newPath
+        a.explorerState.CurrentDir.Name = filepath.Base(newPath)
+        a.explorerState.CurrentDir.IsDir = true
+    }
+
+    return ReturnValue{FileExplorer: a.explorerState}
+}
+
 func (a *App) GetEnvVars() ReturnValue {
 	config, err := a.loadEnvConfig()
 	if err != nil {
