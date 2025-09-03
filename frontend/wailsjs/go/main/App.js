@@ -38,10 +38,6 @@ export function ExistsInCache(arg1) {
   return window['go']['main']['App']['ExistsInCache'](arg1);
 }
 
-export function GetAvailableEnvGroups() {
-  return window['go']['main']['App']['GetAvailableEnvGroups']();
-}
-
 export function GetCache(arg1) {
   return window['go']['main']['App']['GetCache'](arg1);
 }
@@ -54,8 +50,8 @@ export function GetCurrentDirectory() {
   return window['go']['main']['App']['GetCurrentDirectory']();
 }
 
-export function GetEnvVars(arg1) {
-  return window['go']['main']['App']['GetEnvVars'](arg1);
+export function GetEnvVars() {
+  return window['go']['main']['App']['GetEnvVars']();
 }
 
 export function GetExplorerState() {
