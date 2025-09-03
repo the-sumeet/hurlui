@@ -1,4 +1,4 @@
-GUI for Hurl
+GUI for [Hurl](https://hurl.dev/).
 
 ## ToDo
 
