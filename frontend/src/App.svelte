@@ -80,6 +80,26 @@
   let envs: string[] = [];
   let selectedEnv: string = $state("");
 
+  function showErrorDialog(title: string, description: string) {
+    appState.dialog = {
+      title,
+      description,
+      buttonTitle: "Close",
+      onclick: () => {
+        appState.dialog = null;
+      },
+    };
+  }
+
+  async function saveSelectedFileOrDialog(): Promise<boolean> {
+    const res = await WriteToSelectedFile(inputFileContent);
+    if (res?.error) {
+      showErrorDialog("Save Error", res.error);
+      return false;
+    }
+    return true;
+  }
+
   function showSaveFileDialog(fileContent: string = "") {
     appState.dialog = {
       title: "Save File",
@@ -177,16 +197,11 @@
     });
   }
 
-  function onFileSelect(file: main.FileInfo) {
-    WriteToSelectedFile(inputFileContent).then((res) => {
-      if (res?.error) {
-        console.error("Failed to save file:", res.error);
-      }
-
-      SelectFile(file.path).then((select_file_result) => {
-        explorerState = select_file_result.fileExplorer;
-      });
-    });
+  async function onFileSelect(file: main.FileInfo) {
+    const saved = await saveSelectedFileOrDialog();
+    if (!saved) return;
+    const select_file_result = await SelectFile(file.path);
+    explorerState = select_file_result.fileExplorer;
   }
 
   function onNavigateUp() {
@@ -209,13 +224,9 @@
       return;
     }
 
-    // First, save the current content.
-    const saveResult = await WriteToSelectedFile(inputFileContent);
-
-    if (saveResult?.error) {
-      console.error("Failed to save file:", saveResult.error);
-      return;
-    }
+    // First, save the current content or show error dialog.
+    const saved = await saveSelectedFileOrDialog();
+    if (!saved) return;
 
     runningHurl = true;
     ExecuteHurl(explorerState?.selectedFile?.path, selectedEnv).then(
