@@ -432,10 +432,7 @@
     >
       <!-- Input -->
       <Resizable.Pane defaultSize={50} class="h-full">
-        <Editor
-          bind:content={inputFileContent}
-          currentFile={explorerState?.currentDir}
-        />
+        <Editor bind:content={inputFileContent} />
       </Resizable.Pane>
 
       <!-- Output -->
