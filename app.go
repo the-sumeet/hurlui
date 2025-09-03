@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	TEMP_DIR_PATH = "/tmp/hurlui"
+	TEMP_DIR_PATH = "/tmp/hurlstudio"
 )
 
 type HurlResult struct {
@@ -192,7 +192,7 @@ func (a *App) getConfigDir() (string, error) {
 		return "", fmt.Errorf("failed to get user home directory: %w", err)
 	}
 
-	configDir := filepath.Join(homeDir, ".config", "hurlui")
+	configDir := filepath.Join(homeDir, ".config", "hurlstudio")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create config directory: %w", err)
 	}
