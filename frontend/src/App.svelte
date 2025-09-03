@@ -61,11 +61,6 @@
   let hurlReport: main.HurlSession[] | null = $state(null);
   let dialogInput: string = $state("");
   let inputFileContent: string = $state("");
-  $effect(() => {
-    if (explorerState?.selectedFile) {
-      WriteToSelectedFile(inputFileContent);
-    }
-  });
 
   let envs: string[] = [];
   let selectedEnv: string = $state("");
@@ -124,12 +119,14 @@
   }
 
   function onFileSelect(file: main.FileInfo) {
-    SelectFile(file.path).then((select_file_result) => {
-      explorerState = select_file_result.fileExplorer;
+    WriteToSelectedFile(inputFileContent).then((res) => {
+      if (res?.error) {
+        console.error("Failed to save file:", res.error);
+      }
 
-      // GetFileContent(file.path).then((result) => {
-      //   inputFileContent = result.fileContent || "";
-      // });
+      SelectFile(file.path).then((select_file_result) => {
+        explorerState = select_file_result.fileExplorer;
+      });
     });
   }
 
@@ -274,7 +271,7 @@
           {/if}</Button
         >
 
-        <Button
+        <!-- <Button
           variant="outline"
           disabled={runningHurl}
           onclick={() => {
@@ -292,7 +289,7 @@
           }}
         >
           <Save />
-        </Button>
+        </Button> -->
         <Button
           variant="outline"
           onclick={showNewFolderDialog}
