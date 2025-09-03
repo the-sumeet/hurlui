@@ -368,6 +368,17 @@ func (a *App) DeletePath(targetPath string) ReturnValue {
         }
     }
 
+    // Also delete any cached hurl results corresponding to the path.
+    // If a file is deleted, remove its specific cache dir; if a folder is deleted,
+    // remove the mirrored subtree under TEMP_DIR_PATH.
+    cacheRoot := tempOutputPathFor(targetPath)
+    if info.IsDir() {
+        _ = os.RemoveAll(cacheRoot)
+    } else {
+        // Only .hurl files will have cached results, but removing a non-existent dir is safe
+        _ = os.RemoveAll(cacheRoot)
+    }
+
     // Update explorer state when selection or current dir are impacted
     // Clear selection if it was the deleted item or under it
     if a.explorerState.SelectedFile.Path == targetPath ||

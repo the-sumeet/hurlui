@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
@@ -121,8 +122,29 @@ func createFileInfo(path string) (FileInfo, error) {
 	}, nil
 }
 
+// tempOutputPathFor returns a path inside TEMP_DIR_PATH mirroring the given file path.
+// It avoids filepath.Join swallowing TEMP_DIR_PATH when filePath is absolute by
+// stripping leading separators and joining the remainder under the temp root.
+func tempOutputPathFor(filePath string) string {
+	cleaned := filepath.Clean(filePath)
+	// Make absolute for consistency if possible
+	if abs, err := filepath.Abs(cleaned); err == nil {
+		cleaned = abs
+	}
+	// Remove volume (Windows) and leading separators to make it relative
+	// Keep the rest of the path hierarchy under TEMP_DIR_PATH
+	vol := filepath.VolumeName(cleaned)
+	rel := strings.TrimPrefix(cleaned, vol)
+	for strings.HasPrefix(rel, string(os.PathSeparator)) {
+		rel = strings.TrimPrefix(rel, string(os.PathSeparator))
+	}
+	fmt.Println("Temp output path for:", filePath, "is", filepath.Join(TEMP_DIR_PATH, rel))
+	return filepath.Join(TEMP_DIR_PATH, rel)
+}
+
 func (a *App) selectedFileOutputPath() string {
-	return filepath.Join(TEMP_DIR_PATH, a.explorerState.SelectedFile.Path)
+	return tempOutputPathFor(a.explorerState.SelectedFile.Path)
+	// return filepath.Join(TEMP_DIR_PATH, a.explorerState.SelectedFile.Path)
 }
 
 func (a *App) selectedFileReportPath() string {
