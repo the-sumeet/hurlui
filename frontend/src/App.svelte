@@ -92,6 +92,8 @@
   }
 
   async function saveSelectedFileOrDialog(): Promise<boolean> {
+    if (!explorerState?.selectedFile?.path) return true;
+
     const res = await WriteToSelectedFile(inputFileContent);
     if (res?.error) {
       showErrorDialog("Save Error", res.error);
