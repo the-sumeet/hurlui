@@ -37,8 +37,8 @@ type FileExplorerState struct {
 }
 
 type EnvConfig struct {
-	Global     map[string]string            `json:"global"`
-	Selectable map[string]map[string]string `json:"selectable"`
+	Global       map[string]string            `json:"global"`
+	Environments map[string]map[string]string `json:"environments"`
 }
 
 type ReturnValue struct {
@@ -47,7 +47,7 @@ type ReturnValue struct {
 	Files        []FileInfo        `json:"files"`
 	Error        string            `json:"error,omitempty"`
 	HurlReport   HurlReport        `json:"hurlReport,omitempty"`
-	EnvVars      map[string]string `json:"envVars,omitempty"`
+	Envs         []string          `json:"envs,omitempty"`
 }
 
 type App struct {
@@ -374,7 +374,6 @@ func (a *App) WriteToSelectedFile(content string) ReturnValue {
 		return ReturnValue{Error: "no file selected"}
 	}
 
-	// Check if file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		return ReturnValue{Error: fmt.Sprintf("file does not exist: %s", filePath)}
 	}
@@ -404,7 +403,6 @@ func (a *App) CreateFolder(folderName string) ReturnValue {
 	return ReturnValue{FileExplorer: a.explorerState}
 }
 
-// GetFileContentAndExecuteHurl reads a hurl file content and executes it
 func (a *App) getConfigDir() (string, error) {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -426,11 +424,12 @@ func (a *App) loadEnvConfig() (*EnvConfig, error) {
 	}
 
 	envConfigPath := filepath.Join(configDir, "env.json")
+	fmt.Println("Loading env config from:", envConfigPath)
 
 	if _, err := os.Stat(envConfigPath); os.IsNotExist(err) {
 		return &EnvConfig{
-			Global:     make(map[string]string),
-			Selectable: make(map[string]map[string]string),
+			Global:       make(map[string]string),
+			Environments: make(map[string]map[string]string),
 		}, nil
 	}
 
@@ -447,49 +446,40 @@ func (a *App) loadEnvConfig() (*EnvConfig, error) {
 	if config.Global == nil {
 		config.Global = make(map[string]string)
 	}
-	if config.Selectable == nil {
-		config.Selectable = make(map[string]map[string]string)
+	if config.Environments == nil {
+		config.Environments = make(map[string]map[string]string)
 	}
 
 	return &config, nil
 }
 
-func (a *App) GetEnvVars(selectedEnvGroup string) ReturnValue {
+func (a *App) GetEnvVars() ReturnValue {
 	config, err := a.loadEnvConfig()
 	if err != nil {
 		return ReturnValue{Error: err.Error()}
 	}
 
-	envVars := make(map[string]string)
-
-	for key, value := range config.Global {
-		envVars[key] = value
+	envSelectables := []string{}
+	for groupName := range config.Environments {
+		envSelectables = append(envSelectables, groupName)
 	}
 
-	if selectedEnvGroup != "" {
-		if selectedGroup, exists := config.Selectable[selectedEnvGroup]; exists {
-			for key, value := range selectedGroup {
-				envVars[key] = value
-			}
-		}
-	}
-
-	return ReturnValue{EnvVars: envVars}
+	return ReturnValue{Envs: envSelectables}
 }
 
-func (a *App) GetAvailableEnvGroups() ReturnValue {
-	config, err := a.loadEnvConfig()
-	if err != nil {
-		return ReturnValue{Error: err.Error()}
-	}
+// func (a *App) GetAvailableEnvGroups() ReturnValue {
+// 	config, err := a.loadEnvConfig()
+// 	if err != nil {
+// 		return ReturnValue{Error: err.Error()}
+// 	}
 
-	groups := make([]string, 0, len(config.Selectable))
-	for groupName := range config.Selectable {
-		groups = append(groups, groupName)
-	}
+// 	groups := make([]string, 0, len(config.Selectable))
+// 	for groupName := range config.Selectable {
+// 		groups = append(groups, groupName)
+// 	}
 
-	return ReturnValue{Files: []FileInfo{{Name: "env_groups"}}, EnvVars: map[string]string{"groups": fmt.Sprintf("%v", groups)}}
-}
+// 	return ReturnValue{Files: []FileInfo{{Name: "env_groups"}}, EnvVars: map[string]string{"groups": fmt.Sprintf("%v", groups)}}
+// }
 
 // func (a *App) GetFileContentAndExecuteHurl(filePath string) (map[string]string, error) {
 // 	content, err := a.GetFileContent(filePath)
