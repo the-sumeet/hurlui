@@ -203,11 +203,20 @@
     });
   }
 
-  function onExecuteHurl() {
+  async function onExecuteHurl() {
     if (!explorerState?.selectedFile) {
       console.error("No file selected to execute Hurl");
       return;
     }
+
+    // First, save the current content.
+    const saveResult = await WriteToSelectedFile(inputFileContent);
+
+    if (saveResult?.error) {
+      console.error("Failed to save file:", saveResult.error);
+      return;
+    }
+
     runningHurl = true;
     ExecuteHurl(explorerState?.selectedFile?.path, selectedEnv).then(
       (result) => {
@@ -260,7 +269,11 @@
       {#if dialog.inputLabel}
         <div class="grid grid-cols-4 items-center gap-4">
           <Label for="name" class="text-right">{dialog.inputLabel}</Label>
-          <Input id="name" bind:value={appState.dialog!.inputValue} class="col-span-3" />
+          <Input
+            id="name"
+            bind:value={appState.dialog!.inputValue}
+            class="col-span-3"
+          />
         </div>
       {/if}
       <!-- <div class="grid grid-cols-4 items-center gap-4">
