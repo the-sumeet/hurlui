@@ -87,7 +87,7 @@
 				<DropdownMenu.Item onclick={() => onDelete(item)}>
 					<span>Delete</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Separator />
+				<!-- <DropdownMenu.Separator /> -->
 				<!-- extra items removed or repurposed -->
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
