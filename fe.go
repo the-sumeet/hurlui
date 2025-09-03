@@ -8,7 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-    "strings"
+	"strings"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -166,7 +166,7 @@ func (a *App) ExecuteHurl(filePath string, envName string) ReturnValue {
 	cmd := exec.Command(command[0], command[1:]...)
 	bytes, err := cmd.CombinedOutput()
 	if err != nil {
-		return ReturnValue{Error: fmt.Sprintf("failed to execute hurl: %w", string(bytes))}
+		return ReturnValue{Error: fmt.Sprintf("failed to execute hurl: %s\n%s", err.Error(), string(bytes))}
 	}
 
 	// Read and parse JSON report from outputDir
@@ -279,47 +279,47 @@ func (a *App) CreateFolder(folderName string) ReturnValue {
 // RenamePath renames a file or folder within its current directory.
 // newName should be a base name (no path separators).
 func (a *App) RenamePath(oldPath string, newName string) ReturnValue {
-    if oldPath == "" {
-        return ReturnValue{Error: "old path is empty"}
-    }
-    if newName == "" {
-        return ReturnValue{Error: "new name is empty"}
-    }
-    if filepath.Base(newName) != newName {
-        return ReturnValue{Error: "new name must not contain path separators"}
-    }
+	if oldPath == "" {
+		return ReturnValue{Error: "old path is empty"}
+	}
+	if newName == "" {
+		return ReturnValue{Error: "new name is empty"}
+	}
+	if filepath.Base(newName) != newName {
+		return ReturnValue{Error: "new name must not contain path separators"}
+	}
 
-    // Ensure the old path exists
-    oldInfo, err := os.Stat(oldPath)
-    if err != nil {
-        return ReturnValue{Error: fmt.Sprintf("path does not exist: %v", err)}
-    }
+	// Ensure the old path exists
+	oldInfo, err := os.Stat(oldPath)
+	if err != nil {
+		return ReturnValue{Error: fmt.Sprintf("path does not exist: %v", err)}
+	}
 
-    dir := filepath.Dir(oldPath)
-    newPath := filepath.Join(dir, newName)
+	dir := filepath.Dir(oldPath)
+	newPath := filepath.Join(dir, newName)
 
-    // Prevent overwriting existing paths
-    if _, err := os.Stat(newPath); err == nil {
-        return ReturnValue{Error: fmt.Sprintf("target already exists: %s", newPath)}
-    }
+	// Prevent overwriting existing paths
+	if _, err := os.Stat(newPath); err == nil {
+		return ReturnValue{Error: fmt.Sprintf("target already exists: %s", newPath)}
+	}
 
-    if err := os.Rename(oldPath, newPath); err != nil {
-        return ReturnValue{Error: fmt.Sprintf("failed to rename: %v", err)}
-    }
+	if err := os.Rename(oldPath, newPath); err != nil {
+		return ReturnValue{Error: fmt.Sprintf("failed to rename: %v", err)}
+	}
 
-    // Update explorer state if needed
-    if a.explorerState.SelectedFile.Path == oldPath {
-        a.explorerState.SelectedFile.Path = newPath
-        a.explorerState.SelectedFile.Name = filepath.Base(newPath)
-        a.explorerState.SelectedFile.IsDir = oldInfo.IsDir()
-    }
-    if a.explorerState.CurrentDir.Path == oldPath && oldInfo.IsDir() {
-        a.explorerState.CurrentDir.Path = newPath
-        a.explorerState.CurrentDir.Name = filepath.Base(newPath)
-        a.explorerState.CurrentDir.IsDir = true
-    }
+	// Update explorer state if needed
+	if a.explorerState.SelectedFile.Path == oldPath {
+		a.explorerState.SelectedFile.Path = newPath
+		a.explorerState.SelectedFile.Name = filepath.Base(newPath)
+		a.explorerState.SelectedFile.IsDir = oldInfo.IsDir()
+	}
+	if a.explorerState.CurrentDir.Path == oldPath && oldInfo.IsDir() {
+		a.explorerState.CurrentDir.Path = newPath
+		a.explorerState.CurrentDir.Name = filepath.Base(newPath)
+		a.explorerState.CurrentDir.IsDir = true
+	}
 
-    return ReturnValue{FileExplorer: a.explorerState}
+	return ReturnValue{FileExplorer: a.explorerState}
 }
 
 func (a *App) GetEnvVars() ReturnValue {
@@ -348,54 +348,54 @@ func (a *App) GetEnvFilePath() ReturnValue {
 
 // DeletePath deletes a file or directory. Directories are removed recursively.
 func (a *App) DeletePath(targetPath string) ReturnValue {
-    if targetPath == "" {
-        return ReturnValue{Error: "path is empty"}
-    }
+	if targetPath == "" {
+		return ReturnValue{Error: "path is empty"}
+	}
 
-    info, err := os.Stat(targetPath)
-    if err != nil {
-        return ReturnValue{Error: fmt.Sprintf("path does not exist: %v", err)}
-    }
+	info, err := os.Stat(targetPath)
+	if err != nil {
+		return ReturnValue{Error: fmt.Sprintf("path does not exist: %v", err)}
+	}
 
-    // Perform deletion
-    if info.IsDir() {
-        if err := os.RemoveAll(targetPath); err != nil {
-            return ReturnValue{Error: fmt.Sprintf("failed to delete folder: %v", err)}
-        }
-    } else {
-        if err := os.Remove(targetPath); err != nil {
-            return ReturnValue{Error: fmt.Sprintf("failed to delete file: %v", err)}
-        }
-    }
+	// Perform deletion
+	if info.IsDir() {
+		if err := os.RemoveAll(targetPath); err != nil {
+			return ReturnValue{Error: fmt.Sprintf("failed to delete folder: %v", err)}
+		}
+	} else {
+		if err := os.Remove(targetPath); err != nil {
+			return ReturnValue{Error: fmt.Sprintf("failed to delete file: %v", err)}
+		}
+	}
 
-    // Also delete any cached hurl results corresponding to the path.
-    // If a file is deleted, remove its specific cache dir; if a folder is deleted,
-    // remove the mirrored subtree under TEMP_DIR_PATH.
-    cacheRoot := tempOutputPathFor(targetPath)
-    if info.IsDir() {
-        _ = os.RemoveAll(cacheRoot)
-    } else {
-        // Only .hurl files will have cached results, but removing a non-existent dir is safe
-        _ = os.RemoveAll(cacheRoot)
-    }
+	// Also delete any cached hurl results corresponding to the path.
+	// If a file is deleted, remove its specific cache dir; if a folder is deleted,
+	// remove the mirrored subtree under TEMP_DIR_PATH.
+	cacheRoot := tempOutputPathFor(targetPath)
+	if info.IsDir() {
+		_ = os.RemoveAll(cacheRoot)
+	} else {
+		// Only .hurl files will have cached results, but removing a non-existent dir is safe
+		_ = os.RemoveAll(cacheRoot)
+	}
 
-    // Update explorer state when selection or current dir are impacted
-    // Clear selection if it was the deleted item or under it
-    if a.explorerState.SelectedFile.Path == targetPath ||
-        strings.HasPrefix(a.explorerState.SelectedFile.Path, targetPath+string(os.PathSeparator)) {
-        a.ClearSelection()
-    }
+	// Update explorer state when selection or current dir are impacted
+	// Clear selection if it was the deleted item or under it
+	if a.explorerState.SelectedFile.Path == targetPath ||
+		strings.HasPrefix(a.explorerState.SelectedFile.Path, targetPath+string(os.PathSeparator)) {
+		a.ClearSelection()
+	}
 
-    // If current directory is deleted or was inside the deleted folder, move to parent
-    if a.explorerState.CurrentDir.Path == targetPath ||
-        strings.HasPrefix(a.explorerState.CurrentDir.Path, targetPath+string(os.PathSeparator)) {
-        parent := filepath.Dir(targetPath)
-        if stat, err := os.Stat(parent); err == nil && stat.IsDir() {
-            if fi, err := createFileInfo(parent); err == nil {
-                a.explorerState.CurrentDir = fi
-            }
-        }
-    }
+	// If current directory is deleted or was inside the deleted folder, move to parent
+	if a.explorerState.CurrentDir.Path == targetPath ||
+		strings.HasPrefix(a.explorerState.CurrentDir.Path, targetPath+string(os.PathSeparator)) {
+		parent := filepath.Dir(targetPath)
+		if stat, err := os.Stat(parent); err == nil && stat.IsDir() {
+			if fi, err := createFileInfo(parent); err == nil {
+				a.explorerState.CurrentDir = fi
+			}
+		}
+	}
 
-    return ReturnValue{FileExplorer: a.explorerState}
+	return ReturnValue{FileExplorer: a.explorerState}
 }

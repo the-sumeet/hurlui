@@ -138,7 +138,6 @@ func tempOutputPathFor(filePath string) string {
 	for strings.HasPrefix(rel, string(os.PathSeparator)) {
 		rel = strings.TrimPrefix(rel, string(os.PathSeparator))
 	}
-	fmt.Println("Temp output path for:", filePath, "is", filepath.Join(TEMP_DIR_PATH, rel))
 	return filepath.Join(TEMP_DIR_PATH, rel)
 }
 
