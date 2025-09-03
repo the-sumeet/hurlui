@@ -50,6 +50,10 @@ export function GetCurrentDirectory() {
   return window['go']['main']['App']['GetCurrentDirectory']();
 }
 
+export function GetEnvFilePath() {
+  return window['go']['main']['App']['GetEnvFilePath']();
+}
+
 export function GetEnvVars() {
   return window['go']['main']['App']['GetEnvVars']();
 }

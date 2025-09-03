@@ -396,6 +396,7 @@ export namespace main {
 	    error?: string;
 	    hurlReport?: HurlSession[];
 	    envs?: string[];
+	    envFilePath?: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new ReturnValue(source);
@@ -409,6 +410,7 @@ export namespace main {
 	        this.error = source["error"];
 	        this.hurlReport = this.convertValues(source["hurlReport"], HurlSession);
 	        this.envs = source["envs"];
+	        this.envFilePath = source["envFilePath"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

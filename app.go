@@ -45,6 +45,7 @@ type ReturnValue struct {
 	Error        string            `json:"error,omitempty"`
 	HurlReport   HurlReport        `json:"hurlReport,omitempty"`
 	Envs         []string          `json:"envs,omitempty"`
+	EnvFilePath  string            `json:"envFilePath,omitempty"`
 }
 
 type App struct {
@@ -178,14 +179,21 @@ func (a *App) getConfigDir() (string, error) {
 	return configDir, nil
 }
 
-func (a *App) loadEnvConfig() (*EnvConfig, error) {
+func (a *App) getEnvFilePath() (string, error) {
 	configDir, err := a.getConfigDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(configDir, "env.json"), nil
+}
+
+func (a *App) loadEnvConfig() (*EnvConfig, error) {
+
+	envConfigPath, err := a.getEnvFilePath()
 	if err != nil {
 		return nil, err
 	}
-
-	envConfigPath := filepath.Join(configDir, "env.json")
-	fmt.Println("Loading env config from:", envConfigPath)
 
 	if _, err := os.Stat(envConfigPath); os.IsNotExist(err) {
 		return &EnvConfig{

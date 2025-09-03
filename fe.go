@@ -288,3 +288,13 @@ func (a *App) GetEnvVars() ReturnValue {
 
 	return ReturnValue{Envs: envSelectables}
 }
+
+func (a *App) GetEnvFilePath() ReturnValue {
+
+	envConfigPath, err := a.getEnvFilePath()
+	if err != nil {
+		return ReturnValue{Error: err.Error()}
+	}
+
+	return ReturnValue{EnvFilePath: envConfigPath}
+}

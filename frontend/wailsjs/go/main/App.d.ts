@@ -27,6 +27,8 @@ export function GetCacheKeys():Promise<Array<string>>;
 
 export function GetCurrentDirectory():Promise<main.FileInfo>;
 
+export function GetEnvFilePath():Promise<main.ReturnValue>;
+
 export function GetEnvVars():Promise<main.ReturnValue>;
 
 export function GetExplorerState():Promise<main.ReturnValue>;

@@ -14,6 +14,7 @@
     GetHurlResult,
     WriteToSelectedFile,
     GetEnvVars,
+    GetEnvFilePath,
   } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
   import { onMount } from "svelte";
@@ -25,6 +26,7 @@
   import { Input } from "$lib/components/ui/input/index.js";
   import { Label } from "$lib/components/ui/label/index.js";
   import { FilePlus } from "lucide-svelte";
+  import { Info } from "lucide-svelte";
   import {
     ChangeDirectory,
     NavigateUp,
@@ -61,6 +63,7 @@
   let hurlReport: main.HurlSession[] | null = $state(null);
   let dialogInput: string = $state("");
   let inputFileContent: string = $state("");
+  let envFilePath: string = $state("");
 
   let envs: string[] = [];
   let selectedEnv: string = $state("");
@@ -179,6 +182,10 @@
 
     GetEnvVars().then((result) => {
       envs = result.envs || [];
+    });
+
+    GetEnvFilePath().then((result) => {
+      envFilePath = result.envFilePath || "";
     });
   });
 </script>
@@ -310,6 +317,9 @@
             {#each envs as env}
               <Select.Item value={env}>{env}</Select.Item>
             {/each}
+            <Select.Item disabled value="NOT_SET"
+              >Env vars in {envFilePath}</Select.Item
+            >
           </Select.Content>
         </Select.Root>
       </div>
