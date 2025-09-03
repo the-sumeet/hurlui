@@ -6,11 +6,14 @@
   import "./app.css";
   import * as Resizable from "$lib/components/ui/resizable/index.js";
   import Editor from "./Editor.svelte";
+  import * as Select from "$lib/components/ui/select/index.js";
+
   import {
     GetFileContent,
     GetFiles,
     GetHurlResult,
     WriteToSelectedFile,
+    GetEnvVars,
   } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
   import { onMount } from "svelte";
@@ -63,6 +66,9 @@
       WriteToSelectedFile(inputFileContent);
     }
   });
+
+  let envs: string[] = [];
+  let selectedEnv: string = $state("");
 
   function showSaveFileDialog(fileContent: string = "") {
     if (fileContent == "") {
@@ -174,6 +180,10 @@
 
   onMount(() => {
     fetchFiles();
+
+    GetEnvVars().then((result) => {
+      envs = result.envs || [];
+    });
   });
 </script>
 
@@ -296,6 +306,16 @@
         >
           <FilePlus /></Button
         >
+
+        <Select.Root type="single" bind:value={selectedEnv}>
+          <Select.Trigger class="w-min">{selectedEnv || "Env"}</Select.Trigger>
+          <Select.Content>
+            <Select.Item value="">None</Select.Item>
+            {#each envs as env}
+              <Select.Item value={env}>{env}</Select.Item>
+            {/each}
+          </Select.Content>
+        </Select.Root>
       </div>
 
       <!-- Breadcrumbs -->
