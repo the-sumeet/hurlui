@@ -1,0 +1,53 @@
+name: Wails build
+
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  NODE_OPTIONS: "--max-old-space-size=4096"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - name: 'HurlStudio'
+            platform: 'linux/amd64'
+            os: 'ubuntu-latest'
+          - name: 'HurlStudio'
+            platform: 'windows/amd64'
+            os: 'windows-latest'
+          - name: 'HurlStudio'
+            platform: 'darwin/universal'
+            os: 'macos-latest'
+
+    runs-on: ${{ matrix.build.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Build wails
+        uses: dAppServer/wails-build-action@v2.2
+        id: build
+        with:
+          build-name: ${{ matrix.build.name }}
+          build-platform: ${{ matrix.build.platform }}
+          package: false
+          go-version: '1.23'
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.build.name }}-${{ matrix.build.platform }}-${{ github.ref_name }}
+          path: build/bin/**
