@@ -1,4 +1,4 @@
-module hurlui
+module hurlstudio
 
 go 1.23
 
