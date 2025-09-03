@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+    "strings"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
@@ -343,4 +344,47 @@ func (a *App) GetEnvFilePath() ReturnValue {
 	}
 
 	return ReturnValue{EnvFilePath: envConfigPath}
+}
+
+// DeletePath deletes a file or directory. Directories are removed recursively.
+func (a *App) DeletePath(targetPath string) ReturnValue {
+    if targetPath == "" {
+        return ReturnValue{Error: "path is empty"}
+    }
+
+    info, err := os.Stat(targetPath)
+    if err != nil {
+        return ReturnValue{Error: fmt.Sprintf("path does not exist: %v", err)}
+    }
+
+    // Perform deletion
+    if info.IsDir() {
+        if err := os.RemoveAll(targetPath); err != nil {
+            return ReturnValue{Error: fmt.Sprintf("failed to delete folder: %v", err)}
+        }
+    } else {
+        if err := os.Remove(targetPath); err != nil {
+            return ReturnValue{Error: fmt.Sprintf("failed to delete file: %v", err)}
+        }
+    }
+
+    // Update explorer state when selection or current dir are impacted
+    // Clear selection if it was the deleted item or under it
+    if a.explorerState.SelectedFile.Path == targetPath ||
+        strings.HasPrefix(a.explorerState.SelectedFile.Path, targetPath+string(os.PathSeparator)) {
+        a.ClearSelection()
+    }
+
+    // If current directory is deleted or was inside the deleted folder, move to parent
+    if a.explorerState.CurrentDir.Path == targetPath ||
+        strings.HasPrefix(a.explorerState.CurrentDir.Path, targetPath+string(os.PathSeparator)) {
+        parent := filepath.Dir(targetPath)
+        if stat, err := os.Stat(parent); err == nil && stat.IsDir() {
+            if fi, err := createFileInfo(parent); err == nil {
+                a.explorerState.CurrentDir = fi
+            }
+        }
+    }
+
+    return ReturnValue{FileExplorer: a.explorerState}
 }

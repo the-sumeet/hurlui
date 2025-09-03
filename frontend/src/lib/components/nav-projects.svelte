@@ -15,6 +15,7 @@
 		onFileSelect,
 		onNavigateUp,
 		onRename,
+		onDelete,
 		isBusy = false,
 	}: {
 		explorerState?: main.FileExplorerState | null;
@@ -23,6 +24,7 @@
 		onFileSelect: (file: main.FileInfo) => void;
 		onNavigateUp: () => void;
 		onRename: (item: main.FileInfo) => void;
+		onDelete: (item: main.FileInfo) => void;
 		isBusy?: boolean;
 	} = $props();
 
@@ -82,15 +84,11 @@
 				<DropdownMenu.Item onclick={() => onRename(item)}>
 					<span>Rename</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item>
-					<ShareIcon class="text-muted-foreground" />
-					<span>Share Project</span>
+				<DropdownMenu.Item onclick={() => onDelete(item)}>
+					<span>Delete</span>
 				</DropdownMenu.Item>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item>
-					<Trash2Icon class="text-muted-foreground" />
-					<span>Delete Project</span>
-				</DropdownMenu.Item>
+				<!-- extra items removed or repurposed -->
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 	</Sidebar.MenuItem>

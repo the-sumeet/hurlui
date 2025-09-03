@@ -16,6 +16,7 @@
     GetEnvVars,
     GetEnvFilePath,
     RenamePath,
+    DeletePath,
   } from "../wailsjs/go/main/App.js";
   import { main } from "../wailsjs/go/models";
   import { onMount } from "svelte";
@@ -149,6 +150,27 @@
     };
   }
 
+  function showDeleteDialog(item: main.FileInfo) {
+    const isDir = item.isDir;
+    appState.dialog = {
+      title: isDir ? "Delete Folder" : "Delete File",
+      description: isDir
+        ? `This will permanently delete the folder and all its contents.\n${item.path}`
+        : `This will permanently delete the file.\n${item.path}`,
+      buttonTitle: "Delete",
+      onclick: () => {
+        DeletePath(item.path).then((result) => {
+          if (result.error) {
+            console.error("Failed to delete:", result.error);
+          } else {
+            fetchFiles();
+          }
+        });
+        appState.dialog = null;
+      },
+    };
+  }
+
   function onDirSelect(dir: main.FileInfo) {
     ChangeDirectory(dir.path).then(() => {
       fetchFiles();
@@ -265,6 +287,7 @@
     {onFileSelect}
     {onNavigateUp}
     onRename={showRenameDialog}
+    onDelete={showDeleteDialog}
     isBusy={runningHurl}
     class="h-full"
   />

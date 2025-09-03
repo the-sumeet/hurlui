@@ -30,6 +30,10 @@ export function DeleteCache(arg1) {
   return window['go']['main']['App']['DeleteCache'](arg1);
 }
 
+export function DeletePath(arg1) {
+  return window['go']['main']['App']['DeletePath'](arg1);
+}
+
 export function ExecuteHurl(arg1, arg2) {
   return window['go']['main']['App']['ExecuteHurl'](arg1, arg2);
 }
