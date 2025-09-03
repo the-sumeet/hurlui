@@ -12,7 +12,16 @@
         if (mode && editor) {
             const session = editor.getSession();
             session.setMode(`ace/mode/${mode}`);
-            console.log("Mode set to:", mode);
+        }
+    });
+
+    // Update editor content when value prop changes
+    $effect(() => {
+        if (!editor) return;
+        const session = editor.getSession();
+        const current = session.getValue();
+        if (current !== value) {
+            editor.setValue(value ?? "", -1);
         }
     });
 

@@ -26,7 +26,8 @@
     });
 
     let entries = $derived.by(() => {
-        if (!hurlReport || hurlReport.length === 0) return [] as main.HurlEntry[];
+        if (!hurlReport || hurlReport.length === 0)
+            return [] as main.HurlEntry[];
         const index = Number.parseInt(selectedSessionIndex) || 0;
         const safeIndex = Math.min(Math.max(index, 0), hurlReport.length - 1);
         return hurlReport[safeIndex]?.entries ?? ([] as main.HurlEntry[]);
@@ -75,10 +76,10 @@
 
         <!-- Response container -->
         <div class="flex-1 flex flex-col gap-1 overflow-y-scroll h-full">
-            {#each entries as trigger, i}
-                {#each trigger.calls as call, j}
+            {#each entries as entry (entry.index)}
+                {#each entry.calls as call, j (`${call.request.url}:${call.response.status ?? 0}:${j}`)}
                     <ResponseCall
-                        showCallNumber={trigger.calls.length > 1}
+                        showCallNumber={entry.calls.length > 1}
                         callNumber={j + 1}
                         {call}
                     />
