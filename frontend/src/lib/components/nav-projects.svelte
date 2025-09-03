@@ -62,7 +62,11 @@
 		<DropdownMenu.Root>
 			<DropdownMenu.Trigger>
 				{#snippet child({ props })}
-					<Sidebar.MenuAction showOnHover {...props} aria-disabled={isBusy}>
+					<Sidebar.MenuAction
+						showOnHover
+						{...props}
+						aria-disabled={isBusy}
+					>
 						<EllipsisIcon />
 						<span class="sr-only">More</span>
 					</Sidebar.MenuAction>
@@ -110,7 +114,7 @@
 			)}
 		{/if}
 
-		{#each files || [] as item (item.name)}
+		{#each files || [] as item (item.path)}
 			{@render menuItem(item, null)}
 		{/each}
 	</Sidebar.Menu>
