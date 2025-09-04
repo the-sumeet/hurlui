@@ -20,3 +20,6 @@ GUI for [Hurl](https://hurl.dev/).
 - Convert to SvelteKit.
 - Show editor for env var file.
 - Save UI preferences like selected env, etc.
+- Support search in ace editor.
+- Support font size change in ace editor.
+
