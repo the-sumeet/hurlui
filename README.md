@@ -3,6 +3,10 @@ GUI for [Hurl](https://hurl.dev/).
 
 ![App Screenshot](appscreenshot.png)
 
+## Installation
+
+1. Install [Hurl](https://hurl.dev/docs/installation.html), is should be available in path.
+
 # Features
 
 - File based.
@@ -16,3 +20,6 @@ GUI for [Hurl](https://hurl.dev/).
 - Convert to SvelteKit.
 - Show editor for env var file.
 - Save UI preferences like selected env, etc.
+- Support search in ace editor.
+- Support font size change in ace editor.
+

@@ -10,6 +10,8 @@
     import { responseTypes, timingsDescription } from "./constants";
     import * as Tooltip from "$lib/components/ui/tooltip/index.js";
     import { Info } from "lucide-svelte";
+    import { Button } from "$lib/components/ui/button/index.js";
+    import type { SvelteComponent } from "svelte";
 
     let {
         showCallNumber,
@@ -17,6 +19,8 @@
         call,
     }: { showCallNumber: boolean; callNumber: number; call: main.HurlCall } =
         $props();
+
+    let codeBlockRef: SvelteComponent;
 
     function getResponseHeaders(call: main.HurlCall): string {
         let result = "";
@@ -67,6 +71,11 @@
     }
 
     let responseType = $state(getResponseMode(call));
+
+    // Local editable/format-able body content used by the CodeBlock
+    let responseBody: string = $state(
+        (call.response.bodyContent || call.response.body) as string,
+    );
 
     const statusCode = call.response.status;
 
@@ -134,32 +143,41 @@
                         </Tabs.List>
                         <Tabs.Content value="body">
                             <div class="flex flex-col h-full gap-1">
-                                <Select.Root
-                                    type="single"
-                                    name="favoriteFruit"
-                                    bind:value={responseType}
-                                >
-                                    <Select.Trigger class="w-[180px]">
-                                        {triggerContent}
-                                    </Select.Trigger>
-                                    <Select.Content>
-                                        <Select.Group>
-                                            <Select.Label>Fruits</Select.Label>
-                                            {#each responseTypes as responseType (responseType.value)}
-                                                <Select.Item
-                                                    value={responseType.value}
-                                                    label={responseType.label}
-                                                    disabled={responseType.value ===
-                                                        "grapes"}
+                                <div class="flex items-center gap-2">
+                                    <Select.Root
+                                        type="single"
+                                        name="responseType"
+                                        bind:value={responseType}
+                                    >
+                                        <Select.Trigger class="w-[180px]">
+                                            {triggerContent}
+                                        </Select.Trigger>
+                                        <Select.Content>
+                                            <Select.Group>
+                                                <Select.Label
+                                                    >Response Type</Select.Label
                                                 >
-                                                    {responseType.label}
-                                                </Select.Item>
-                                            {/each}
-                                        </Select.Group>
-                                    </Select.Content>
-                                </Select.Root>
+                                                {#each responseTypes as responseType (responseType.value)}
+                                                    <Select.Item
+                                                        value={responseType.value}
+                                                        label={responseType.label}
+                                                    >
+                                                        {responseType.label}
+                                                    </Select.Item>
+                                                {/each}
+                                            </Select.Group>
+                                        </Select.Content>
+                                    </Select.Root>
+                                    <Button
+                                        variant="secondary"
+                                        onclick={() => codeBlockRef?.format()}
+                                    >
+                                        Format
+                                    </Button>
+                                </div>
                                 <div class="flex-1 h-full border rounded-xl">
                                     <CodeBlock
+                                        bind:this={codeBlockRef}
                                         value={call.response.bodyContent ||
                                             call.response.body}
                                         mode={responseType}
