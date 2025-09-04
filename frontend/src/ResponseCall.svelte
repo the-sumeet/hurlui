@@ -12,7 +12,7 @@
     import { Info } from "lucide-svelte";
     import { Button } from "$lib/components/ui/button/index.js";
     import type { SvelteComponent } from "svelte";
-
+    import { Wand } from "lucide-svelte";
     let {
         showCallNumber,
         callNumber,
@@ -172,7 +172,7 @@
                                         variant="secondary"
                                         onclick={() => codeBlockRef?.format()}
                                     >
-                                        Format
+                                        <Wand />
                                     </Button>
                                 </div>
                                 <div class="flex-1 h-full border rounded-xl">

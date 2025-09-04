@@ -31,55 +31,6 @@
     let editor: ace.Editor;
     let editorElement: HTMLElement;
 
-    function formatJson(input: string): string {
-        try {
-            const parsed = JSON.parse(input);
-            return JSON.stringify(parsed, null, 2);
-        } catch (_) {
-            return input;
-        }
-    }
-
-    function formatXml(input: string): string {
-        if (!input) return input;
-        const reg = /(>)(<)(\/*)/g;
-        let xml = input.replace(reg, "$1\n$2$3");
-        const PADDING = "  ";
-        let formatted = "";
-        let pad = 0;
-        for (const node of xml.split("\n")) {
-            if (!node) continue;
-            let indentChange = 0;
-            if (/^<\/.+>/.test(node)) {
-                pad = Math.max(pad - 1, 0);
-            } else if (/^<[^!?][^>]*[^\/]>(?!.*<\/)/.test(node)) {
-                indentChange = 1;
-            } else if (/^<[^!?].*\/>/.test(node)) {
-                indentChange = 0;
-            } else if (/.+<\/[^>]+>$/.test(node)) {
-                indentChange = 0;
-            }
-            formatted += PADDING.repeat(pad) + node + "\n";
-            pad += indentChange;
-        }
-        return formatted.trim();
-    }
-
-    // Public method: pretty-format current editor content based on `mode`
-    export function format() {
-        const current = (editor?.getValue?.() ?? value ?? "") as string;
-        if (!current) return;
-        let next = current;
-        if (mode === "json") {
-            next = formatJson(current);
-        } else if (mode === "xml" || mode === "html") {
-            next = formatXml(current);
-        }
-        if (next !== current) {
-            editor?.setValue?.(next, -1);
-        }
-    }
-
     // Initialize editor
     onMount(async () => {
         editor = ace.edit(editorElement, {
@@ -88,13 +39,6 @@
             fontSize: `${fontSize}px`,
             // value: selectedFileContent,
             value: value,
-        });
-
-        // Propagate editor changes back to bound `value`
-        editor.on("change", () => {
-            // Avoid unnecessary churn: only update if changed
-            const newVal = editor.getValue() ?? "";
-            if (newVal !== value) value = newVal;
         });
 
         // editor.setValue(value, -1);
