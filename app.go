@@ -78,9 +78,6 @@ func (a *App) startup(ctx context.Context) {
 }
 
 func (a *App) shutdown(ctx context.Context) {
-	if err := a.CloseCache(); err != nil {
-		fmt.Printf("Failed to close cache: %v\n", err)
-	}
 }
 
 func (a *App) initCache() error {
