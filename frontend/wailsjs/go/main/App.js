@@ -6,16 +6,8 @@ export function ChangeDirectory(arg1) {
   return window['go']['main']['App']['ChangeDirectory'](arg1);
 }
 
-export function ClearCache() {
-  return window['go']['main']['App']['ClearCache']();
-}
-
 export function ClearSelection() {
   return window['go']['main']['App']['ClearSelection']();
-}
-
-export function CloseCache() {
-  return window['go']['main']['App']['CloseCache']();
 }
 
 export function CreateFolder(arg1) {
@@ -26,28 +18,12 @@ export function CreateNewFile(arg1, arg2) {
   return window['go']['main']['App']['CreateNewFile'](arg1, arg2);
 }
 
-export function DeleteCache(arg1) {
-  return window['go']['main']['App']['DeleteCache'](arg1);
-}
-
 export function DeletePath(arg1) {
   return window['go']['main']['App']['DeletePath'](arg1);
 }
 
 export function ExecuteHurl(arg1, arg2) {
   return window['go']['main']['App']['ExecuteHurl'](arg1, arg2);
-}
-
-export function ExistsInCache(arg1) {
-  return window['go']['main']['App']['ExistsInCache'](arg1);
-}
-
-export function GetCache(arg1) {
-  return window['go']['main']['App']['GetCache'](arg1);
-}
-
-export function GetCacheKeys() {
-  return window['go']['main']['App']['GetCacheKeys']();
 }
 
 export function GetCurrentDirectory() {
@@ -92,10 +68,6 @@ export function RenamePath(arg1, arg2) {
 
 export function SelectFile(arg1) {
   return window['go']['main']['App']['SelectFile'](arg1);
-}
-
-export function SetCache(arg1, arg2) {
-  return window['go']['main']['App']['SetCache'](arg1, arg2);
 }
 
 export function SetCurrentFile(arg1, arg2) {

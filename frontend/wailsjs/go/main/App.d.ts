@@ -5,27 +5,15 @@ import {context} from '../models';
 
 export function ChangeDirectory(arg1:string):Promise<main.ReturnValue>;
 
-export function ClearCache():Promise<void>;
-
 export function ClearSelection():Promise<void>;
-
-export function CloseCache():Promise<void>;
 
 export function CreateFolder(arg1:string):Promise<main.ReturnValue>;
 
 export function CreateNewFile(arg1:string,arg2:string):Promise<main.ReturnValue>;
 
-export function DeleteCache(arg1:string):Promise<void>;
-
 export function DeletePath(arg1:string):Promise<main.ReturnValue>;
 
 export function ExecuteHurl(arg1:string,arg2:string):Promise<main.ReturnValue>;
-
-export function ExistsInCache(arg1:string):Promise<boolean>;
-
-export function GetCache(arg1:string):Promise<main.HurlResult>;
-
-export function GetCacheKeys():Promise<Array<string>>;
 
 export function GetCurrentDirectory():Promise<main.FileInfo>;
 
@@ -48,8 +36,6 @@ export function NavigateUp():Promise<main.ReturnValue>;
 export function RenamePath(arg1:string,arg2:string):Promise<main.ReturnValue>;
 
 export function SelectFile(arg1:string):Promise<main.ReturnValue>;
-
-export function SetCache(arg1:string,arg2:main.HurlResult):Promise<void>;
 
 export function SetCurrentFile(arg1:context.Context,arg2:main.FileInfo):Promise<void>;
 
