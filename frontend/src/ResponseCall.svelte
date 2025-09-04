@@ -169,7 +169,6 @@
                                         </Select.Content>
                                     </Select.Root>
                                     <Button
-                                        size="sm"
                                         variant="secondary"
                                         onclick={() => codeBlockRef?.format()}
                                     >
