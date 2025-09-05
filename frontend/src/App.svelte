@@ -80,6 +80,18 @@
   let envs: string[] = [];
   let selectedEnv: string = $state("");
 
+  // Persist selected environment in localStorage
+  $effect(() => {
+    try {
+      if (selectedEnv !== undefined) {
+        localStorage.setItem("selectedEnv", selectedEnv ?? "");
+      }
+    } catch (e) {
+      // Ignore storage errors (e.g., disabled storage)
+      console.warn("Failed to persist selectedEnv:", e);
+    }
+  });
+
   function showErrorDialog(title: string, description: string) {
     appState.dialog = {
       title,
@@ -265,6 +277,16 @@
     GetEnvFilePath().then((result) => {
       envFilePath = result.envFilePath || "";
     });
+
+    // Restore selected environment from localStorage
+    try {
+      const storedEnv = localStorage.getItem("selectedEnv");
+      if (storedEnv !== null) {
+        selectedEnv = storedEnv;
+      }
+    } catch (e) {
+      console.warn("Failed to restore selectedEnv:", e);
+    }
   });
 </script>
 

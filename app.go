@@ -50,9 +50,18 @@ type ReturnValue struct {
 }
 
 type App struct {
-	ctx           context.Context
-	explorerState FileExplorerState
-	cacheDB       *bolt.DB
+    ctx           context.Context
+    explorerState FileExplorerState
+    cacheDB       *bolt.DB
+    preferences   Preferences
+}
+
+// Preferences represents simple persisted user settings.
+type Preferences struct {
+    // LastOpenedFile stores the absolute path of the last selected file.
+    LastOpenedFile string `json:"lastOpenedFile"`
+    // LastOpenedDir stores the absolute path of the last browsed directory.
+    LastOpenedDir  string `json:"lastOpenedDir"`
 }
 
 func NewApp() *App {
@@ -74,7 +83,29 @@ func NewApp() *App {
 // startup is called when the app starts. The context is saved
 // so we can call the runtime methods
 func (a *App) startup(ctx context.Context) {
-	a.ctx = ctx
+    a.ctx = ctx
+
+    // Load preferences and restore last session state.
+    if err := a.loadPreferences(); err == nil {
+        if a.preferences.LastOpenedFile != "" {
+            if _, err := os.Stat(a.preferences.LastOpenedFile); err == nil {
+                // If the last opened file still exists, set current dir and selection.
+                dir := filepath.Dir(a.preferences.LastOpenedFile)
+                if dirInfo, err := createFileInfo(dir); err == nil {
+                    a.explorerState.CurrentDir = dirInfo
+                }
+                if fi, err := createFileInfo(a.preferences.LastOpenedFile); err == nil {
+                    a.SetCurrentFile(a.ctx, fi)
+                }
+            }
+        } else if a.preferences.LastOpenedDir != "" {
+            if stat, err := os.Stat(a.preferences.LastOpenedDir); err == nil && stat.IsDir() {
+                if dirInfo, err := createFileInfo(a.preferences.LastOpenedDir); err == nil {
+                    a.explorerState.CurrentDir = dirInfo
+                }
+            }
+        }
+    }
 }
 
 func (a *App) shutdown(ctx context.Context) {
@@ -184,17 +215,63 @@ func (a *App) insertResponseData(h *HurlReport, filePath string) error {
 }
 
 func (a *App) getConfigDir() (string, error) {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return "", fmt.Errorf("failed to get user home directory: %w", err)
-	}
+    homeDir, err := os.UserHomeDir()
+    if err != nil {
+        return "", fmt.Errorf("failed to get user home directory: %w", err)
+    }
 
 	configDir := filepath.Join(homeDir, ".config", "hurlstudio")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		return "", fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	return configDir, nil
+    return configDir, nil
+}
+
+func (a *App) getPrefsFilePath() (string, error) {
+    configDir, err := a.getConfigDir()
+    if err != nil {
+        return "", err
+    }
+    return filepath.Join(configDir, "prefs.json"), nil
+}
+
+func (a *App) loadPreferences() error {
+    prefsPath, err := a.getPrefsFilePath()
+    if err != nil {
+        return err
+    }
+    // If no prefs yet, start with defaults.
+    if _, err := os.Stat(prefsPath); os.IsNotExist(err) {
+        a.preferences = Preferences{}
+        return nil
+    }
+
+    data, err := os.ReadFile(prefsPath)
+    if err != nil {
+        return fmt.Errorf("failed to read prefs file: %w", err)
+    }
+    var prefs Preferences
+    if err := json.Unmarshal(data, &prefs); err != nil {
+        return fmt.Errorf("failed to parse prefs: %w", err)
+    }
+    a.preferences = prefs
+    return nil
+}
+
+func (a *App) savePreferences() error {
+    prefsPath, err := a.getPrefsFilePath()
+    if err != nil {
+        return err
+    }
+    data, err := json.MarshalIndent(a.preferences, "", "  ")
+    if err != nil {
+        return fmt.Errorf("failed to marshal prefs: %w", err)
+    }
+    if err := os.WriteFile(prefsPath, data, 0644); err != nil {
+        return fmt.Errorf("failed to write prefs: %w", err)
+    }
+    return nil
 }
 
 func (a *App) getEnvFilePath() (string, error) {

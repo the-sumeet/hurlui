@@ -44,23 +44,36 @@ func (a *App) GetFiles() ReturnValue {
 }
 
 func (a *App) SetCurrentFile(ctx context.Context, file FileInfo) {
-	a.explorerState.SelectedFile = file
-	runtime.WindowSetTitle(ctx, file.Path)
+    a.explorerState.SelectedFile = file
+    runtime.WindowSetTitle(ctx, file.Path)
+
+    // Persist last opened file if valid
+    if file.Path != "" {
+        a.preferences.LastOpenedFile = file.Path
+        if err := a.savePreferences(); err != nil {
+            // Non-fatal: log to console but don't interrupt flow
+            fmt.Printf("failed to save preferences: %v\n", err)
+        }
+    }
 }
 
 func (a *App) ChangeDirectory(path string) ReturnValue {
-	fileInfo, err := createFileInfo(path)
-	if err != nil {
-		return ReturnValue{Error: err.Error()}
-	}
+    fileInfo, err := createFileInfo(path)
+    if err != nil {
+        return ReturnValue{Error: err.Error()}
+    }
 
 	if !fileInfo.IsDir {
 		fmt.Println("Failed to change directory:", path)
 		return ReturnValue{Error: fmt.Sprintf("path is not a directory: %s", path)}
 	}
 
-	a.explorerState.CurrentDir = fileInfo
-	return ReturnValue{FileExplorer: a.explorerState}
+    a.explorerState.CurrentDir = fileInfo
+    a.preferences.LastOpenedDir = fileInfo.Path
+    if err := a.savePreferences(); err != nil {
+        fmt.Printf("failed to save preferences after change dir: %v\n", err)
+    }
+    return ReturnValue{FileExplorer: a.explorerState}
 }
 
 func (a *App) NavigateUp() ReturnValue {
@@ -312,12 +325,23 @@ func (a *App) RenamePath(oldPath string, newName string) ReturnValue {
 		a.explorerState.SelectedFile.Path = newPath
 		a.explorerState.SelectedFile.Name = filepath.Base(newPath)
 		a.explorerState.SelectedFile.IsDir = oldInfo.IsDir()
+		// Keep preferences in sync if the selected file was renamed
+		if !oldInfo.IsDir() {
+			a.preferences.LastOpenedFile = newPath
+			if err := a.savePreferences(); err != nil {
+				fmt.Printf("failed to save preferences after rename: %v\n", err)
+			}
+		}
 	}
-	if a.explorerState.CurrentDir.Path == oldPath && oldInfo.IsDir() {
-		a.explorerState.CurrentDir.Path = newPath
-		a.explorerState.CurrentDir.Name = filepath.Base(newPath)
-		a.explorerState.CurrentDir.IsDir = true
-	}
+    if a.explorerState.CurrentDir.Path == oldPath && oldInfo.IsDir() {
+        a.explorerState.CurrentDir.Path = newPath
+        a.explorerState.CurrentDir.Name = filepath.Base(newPath)
+        a.explorerState.CurrentDir.IsDir = true
+        a.preferences.LastOpenedDir = newPath
+        if err := a.savePreferences(); err != nil {
+            fmt.Printf("failed to save preferences after dir rename: %v\n", err)
+        }
+    }
 
 	return ReturnValue{FileExplorer: a.explorerState}
 }
@@ -387,15 +411,19 @@ func (a *App) DeletePath(targetPath string) ReturnValue {
 	}
 
 	// If current directory is deleted or was inside the deleted folder, move to parent
-	if a.explorerState.CurrentDir.Path == targetPath ||
-		strings.HasPrefix(a.explorerState.CurrentDir.Path, targetPath+string(os.PathSeparator)) {
-		parent := filepath.Dir(targetPath)
-		if stat, err := os.Stat(parent); err == nil && stat.IsDir() {
-			if fi, err := createFileInfo(parent); err == nil {
-				a.explorerState.CurrentDir = fi
-			}
-		}
-	}
+    if a.explorerState.CurrentDir.Path == targetPath ||
+        strings.HasPrefix(a.explorerState.CurrentDir.Path, targetPath+string(os.PathSeparator)) {
+        parent := filepath.Dir(targetPath)
+        if stat, err := os.Stat(parent); err == nil && stat.IsDir() {
+            if fi, err := createFileInfo(parent); err == nil {
+                a.explorerState.CurrentDir = fi
+                a.preferences.LastOpenedDir = fi.Path
+                if err := a.savePreferences(); err != nil {
+                    fmt.Printf("failed to save preferences after delete: %v\n", err)
+                }
+            }
+        }
+    }
 
 	return ReturnValue{FileExplorer: a.explorerState}
 }
